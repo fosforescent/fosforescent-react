@@ -2,9 +2,7 @@
 
 import React, { ReactElement } from 'react'
 import { ReactViewOptions } from './client'
-import { IFosInterpreter } from '../../../lib/fos/interpreter/types'
-import { INode } from '../../../lib/fos/dag-implementation/types'
-import { useRouter } from 'next/navigation'
+import { IFosInterpreter, INode } from 'fosforescent-js'
 import Cell from './cell'
 import { Crosshair1Icon, DiscIcon, QuestionMarkCircledIcon, PlayIcon, DragHandleDots2Icon, DotsVerticalIcon, ComponentNoneIcon, TrashIcon, PlusCircledIcon  } from '@radix-ui/react-icons'
 import { Button } from "@/components/ui/button"
@@ -65,7 +63,7 @@ export function RowView({
   const newOptions = {
     ...options, 
     setStack: (newStack: IFosInterpreter[]) => {
-      options.setStack(newStack.slice(1, newStack.length))
+      // options.setStack(newStack.slice(1, newStack.length))
     }
   }
 
@@ -123,7 +121,7 @@ const AddDep = ({
 
   const handleAddDep = () => {
     const newStack = interpreter.getBlank(availableInstructions[0] as INode)
-    options.setStack(newStack.slice(1, newStack.length))
+    // options.setStack(newStack.slice(1, newStack.length))
   }
 
   return availableInstructions.length > 0 ? (
@@ -191,7 +189,7 @@ function ZoomComponent({
         style={{ padding: '10px 5px 10px 0px'}}
         onClick={() => {
           console.log('zooming', interpreter.getStack().map(x => x.getStubString()), interpreter.getChildren()[0]?.getStack().map(x => x.getStubString()))
-          options.setStack(interpreter.getStack())
+          // options.setStack(interpreter.getStack())
         }}
       >
       <DiscIcon />

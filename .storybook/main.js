@@ -7,7 +7,7 @@ module.exports = {
     '@storybook/addon-a11y',
   ],
   framework: {
-    name: '@storybook/nextjs',
+    name: '@storybook/react-vite',
     options: {},
   },
   docs: {

@@ -1,0 +1,13 @@
+diff --git a/node_modules/loader-utils/lib/getHashDigest.js b/node_modules/loader-utils/lib/getHashDigest.js
+index 7098f06..a9e4218 100644
+--- a/node_modules/loader-utils/lib/getHashDigest.js
++++ b/node_modules/loader-utils/lib/getHashDigest.js
+@@ -49,7 +49,7 @@ function getHashDigest(buffer, hashType, digestType, maxLength) {
+   let hash;
+ 
+   try {
+-    hash = require('crypto').createHash(hashType);
++    hash = require('node:crypto').createHash(hashType);
+   } catch (error) {
+     if (error.code === 'ERR_OSSL_EVP_UNSUPPORTED' && hashType === 'md4') {
+       if (createMd4 === undefined) {

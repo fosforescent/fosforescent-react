@@ -1,7 +1,6 @@
 import React, { ReactElement, useEffect, useState } from 'react'
-import { IFosInterpreter } from '../../../lib/fos/interpreter/types'
+import { IFosInterpreter } from 'fosforescent-js'
 import {  ReactViewOptions } from './client'
-import { useRouter, useParams } from 'next/navigation'
 
 import { HomeIcon } from '@radix-ui/react-icons'
 import { Button } from "@/components/ui/button"
@@ -43,34 +42,17 @@ const Breadcrumbs = ({
   interpreter: IFosInterpreter,
   options: ReactViewOptions 
 }) => {
-  const router = useRouter()
 
-  console.log('breadcrumbs', options.remainingPath.map(x => x.getDisplayString()), interpreter.getDisplayString())
   return (<>
-    {options.remainingPath.length > 0 && <Button key={0} onClick={() => router.push('/')} variant="secondary"><HomeIcon /></Button>}
-    {options.remainingPath.slice(0, options.remainingPath.length - 1).map((item, index) => {
-      console.log('url trail', options.urlTrail)
-      if (options.urlTrail[index] === undefined) {
-        console.log('url trail', options.urlTrail, index, interpreter.getDisplayString(), interpreter.getChildren().map(x => x.getDisplayString()), options.remainingPath.map(x => x.getDisplayString()))
-        throw new Error('url trail is undefined')
-      }
-      const urlPath = reverseArray(item.getStack()).map(x => x.getStubString()).join('/')
-      // const urlPath = options.urlTrail[index] as string
+    {options.breadcrumbs.map((item, index) => {
       const handleClick = () => {
-        router.push('/' + urlPath)
+        item.setPath()
       }
       return (
-        <Button key={index + 1} onClick={handleClick} variant="secondary">{item.getName()}</Button>
+        <Button key={index + 1} onClick={handleClick} variant="secondary">{item.interpreter.getName()}</Button>
       )
     })}
   </>)
-
-}
-
-function reverseArray <T>(array: T[]): T[] {
-  const copy = [...array]
-  copy.reverse()
-  return copy
 }
 
 const Root = ({
@@ -160,13 +142,13 @@ const Root = ({
       'new Order', reorderItems(interpreter.getChildren().map((task) => task.getStubString())))
       const newStack = interpreter.reorderTargetEdges(reorderItems(interpreter.getChildren().map((task) => task.getStubString()))) 
       console.log('reordered edge stack', newStack.map(x => x.getDisplayString()))
-      options.setStack(newStack)
+      // options.setStack(newStack)
+      
     }
     
     setActiveId(null);
   }
 
-  console.log('interpreters', options.remainingPath.map(x => x.getDisplayString()), interpreter.getDisplayString())
 
   const newOptions = {
     ...options,
@@ -174,7 +156,6 @@ const Root = ({
     urlTrail: interpreter.getStack().map(x => x.getStubString()),
   }
 
-  const interpreterToDisplay = options.remainingPath[options.remainingPath.length - 1] || interpreter
 
   return (
     <DndContext 
@@ -205,7 +186,7 @@ const Root = ({
           </div> */}
         </div>
         <div className="w-full">
-        { <ScreenView interpreter={interpreterToDisplay} options={newOptions} dragging={activeId} />}
+        { <ScreenView interpreter={interpreter} options={newOptions} dragging={activeId} />}
         </div>
         {/* <div>
           {path.map((client, index) => (

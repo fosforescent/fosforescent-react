@@ -1,7 +1,6 @@
 import React, { ReactElement, useState } from 'react'
 import { ReactViewOptions } from './client'
-import { IFosInterpreter } from '../../../lib/fos/interpreter/types'
-import { INode } from '../../../lib/fos/dag-implementation/types'
+import { IFosInterpreter, INode } from 'fosforescent-js'
 import Row from './row'
 import { PlusCircledIcon } from '@radix-ui/react-icons'
 
@@ -42,7 +41,7 @@ export function ScreenView({
   const newOptions = {
     ...options, 
     setStack: (newStack: IFosInterpreter[]) => {
-      options.setStack(newStack.slice(1, newStack.length))
+      // options.setStack(newStack.slice(1, newStack.length))
     }
   }
 
@@ -94,7 +93,7 @@ const AddRow = ({
 
   const handleAddRow = () => {
     const newStack = interpreter.getBlank(availableInstructions[0] as INode)
-    options.setStack(newStack.slice(1, newStack.length))
+    // options.setStack(newStack.slice(1, newStack.length))
   }
 
   return availableInstructions.length > 0 ? (
@@ -127,7 +126,7 @@ const AddOption = ({
 
   const handleAddOption = () => {
     const newStack = interpreter.getBlank(availableInstructions[0] as INode)
-    options.setStack(newStack.slice(1, newStack.length))
+    // options.setStack(newStack.slice(1, newStack.length))
   }
 
   return availableInstructions.length > 0 ? (

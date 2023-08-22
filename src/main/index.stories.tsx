@@ -1,13 +1,18 @@
 import React from 'react'
 // import WorkflowComponent from './workflow'
 // import { getExampleRoot } from '../../lib/fos/demo/example-workflows'
+import {Meta, StoryFn} from "@storybook/react";
 
 export default {
   // component: div,
   title: 'Workflow',
+} as Meta;
+
+interface TplProps {
+  workflowName: string
 }
 
-const Template = (args: any) => {
+const Template: StoryFn<TplProps> = (args: any) => {
   // const [_, node] = getExampleRoot().getTask(args.workflowName)
   // const [ct, setCt] = React.useState(0)
   // const view = getExampleRoot().getEdgeType('workflow')

@@ -1,6 +1,6 @@
 import React, { ReactElement } from 'react'
 import { ReactViewOptions } from './client'
-import { IFosInterpreter } from '../../../lib/fos/interpreter/types'
+import { IFosInterpreter } from 'fosforescent-js'
 import { Input } from "@/components/ui/input"
 
 const NameView = ({
@@ -13,7 +13,7 @@ const NameView = ({
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const newStack = interpreter.setValue(event.target.value)
-    options.setStack(newStack.slice(1, newStack.length - 1))
+    // options.setStack(newStack.slice(1, newStack.length - 1))
   }
 
   const value = interpreter.getValue()

@@ -1,7 +1,7 @@
 import { Gantt, Task as GanttTask, ViewMode } from 'gantt-task-react'
 import 'gantt-task-react/dist/index.css'
-import { INode } from '../../../lib/fos/dag-implementation/types'
-import { Duration, DurationUnit } from '../../../lib/fos/dag-implementation/node-data'
+import { INode } from 'fosforescent-js'
+// import { Duration, DurationUnit } from '../../../lib/fos/dag-implementation/node-data'
 
 export default function GanttComponent({ root }: { root: INode }) {
   // const [tasks, totalDuration] = scheduleTasks(root)
