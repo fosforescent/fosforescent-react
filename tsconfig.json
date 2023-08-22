@@ -39,8 +39,8 @@
     "**/*.ts",
     "**/*.tsx",
     "declarations.d.ts",
-    "lib/**/*.d.ts",
-    "lib/dnd/multi-backend.js"  
+    "src/lib/**/*.d.ts",
+    "src/lib/dnd/multi-backend.js"  
   ],
   "exclude": [
     "node_modules"
