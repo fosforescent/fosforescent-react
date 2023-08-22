@@ -1,7 +1,9 @@
 import React from 'react'
-// import WorkflowComponent from './workflow'
-// import { getExampleRoot } from '../../lib/fos/demo/example-workflows'
 import {Meta, StoryFn} from "@storybook/react";
+
+import Main from '@/components/fos'
+import {ReactViewOptions, useFos} from '@/components/fos/client'
+import { FosOptions } from 'fosforescent-js';
 
 export default {
   // component: div,
@@ -19,18 +21,26 @@ const Template: StoryFn<TplProps> = (args: any) => {
 
   // const forceUpdate = () => setCt(ct + 1)
 
+  const options: FosOptions = {}
+  const fos = useFos(options)
+  const interpreter = fos.getRoot()
+
   return (
+    <div>
+      {args.workflowName}
+      <Main path={[]} storeData='' options={{}} />
+    </div>
     // <WorkflowComponent node={node} edge={view} path={[[view, node]]} forceUpdate={forceUpdate} />
-    <div>{args.workflowName}</div>
   )
 }
 
-export const CarrotDinner = Template.bind({})
-CarrotDinner.args = {
-  workflowName: 'carrot-dinner',
+
+export const WithDemo = Template.bind({})
+WithDemo.args = {
+  workflowName: 'with-demo',
 }
 
-export const Lasagna = Template.bind({})
-Lasagna.args = {
-  workflowName: 'lasagna',
+export const WithoutDemo = Template.bind({})
+WithDemo.args = {
+  workflowName: 'without-demo',
 }

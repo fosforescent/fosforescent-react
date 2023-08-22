@@ -9,5 +9,13 @@ export default defineConfig(() => {
       outDir: 'build',
     },
     plugins: [react(), viteTsconfigPaths(), svgr({ svgrOptions: { icon: true } })],
+    server: {
+      fs: {
+        allow: ['./..']
+      }
+    },
+    optimizeDeps: {
+      include: ['fosforescent-js'],
+    },
   };
 });

@@ -13,13 +13,15 @@ export type ReactViewOptions = {
  */
 
 export const useFos = (options: Partial<FosOptions> = {}) => {
-  const [fos, setFos] = React.useState<IFosInstance>(Fos(options))
+  const [optionsState, setOptionsState] = React.useState<Partial<FosOptions>>(options)
+  const [fos, setFos] = React.useState<IFosInstance>(Fos(optionsState))
 
   const rootAddress = fos.getRootAddress()
 
   React.useEffect(() => {
-    setFos(Fos(options))
+    setFos(Fos(optionsState))
   }, [rootAddress])
+
 
   return fos
 
