@@ -1,6 +1,6 @@
 import React, { ReactElement, useEffect, useState } from 'react'
 import { IFosInterpreter } from 'fosforescent-js'
-import {  ReactViewOptions } from './client'
+import {  ReactViewOptions } from '../../lib/client'
 
 import { HomeIcon } from '@radix-ui/react-icons'
 import { Button } from "@/components/ui/button"
@@ -156,6 +156,14 @@ const Root = ({
     urlTrail: interpreter.getStack().map(x => x.getStubString()),
   }
 
+  // const interpreterInstruction = React.useMemo(() => {
+  //   return interpreter.getInstruction()
+  // }, [interpreter])
+
+  // const ScreenView = React.useMemo(() => {
+  //   const screenComponent =  interpreter.getAction('showScreen')
+  //   return screenComponent
+  // }, [interpreterInstruction])
 
   return (
     <DndContext 

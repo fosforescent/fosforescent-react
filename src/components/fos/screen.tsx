@@ -1,5 +1,5 @@
 import React, { ReactElement, useState } from 'react'
-import { ReactViewOptions } from './client'
+import { ReactViewOptions } from '../../lib/client'
 import { IFosInterpreter, INode } from 'fosforescent-js'
 import Row from './row'
 import { PlusCircledIcon } from '@radix-ui/react-icons'

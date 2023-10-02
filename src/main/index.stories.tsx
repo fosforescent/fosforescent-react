@@ -2,7 +2,7 @@ import React from 'react'
 import {Meta, StoryFn} from "@storybook/react";
 
 import Main from '@/components/fos'
-import {ReactViewOptions, useFos} from '@/components/fos/client'
+import { ReactViewOptions, useFos } from '@/lib/client'
 import { FosOptions } from 'fosforescent-js';
 
 export default {
@@ -21,14 +21,18 @@ const Template: StoryFn<TplProps> = (args: any) => {
 
   // const forceUpdate = () => setCt(ct + 1)
 
-  const options: FosOptions = {}
+  const options: Partial<FosOptions> & { mock?: boolean } = {
+    mock: true,
+  }
   const fos = useFos(options)
-  const interpreter = fos.getRoot()
+  const interpreter = fos.createTransaction()
+
+  
 
   return (
     <div>
       {args.workflowName}
-      <Main path={[]} storeData='' options={{}} />
+      <Main interpreter={interpreter} />
     </div>
     // <WorkflowComponent node={node} edge={view} path={[[view, node]]} forceUpdate={forceUpdate} />
   )

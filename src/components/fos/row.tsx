@@ -1,7 +1,7 @@
 'use client'
 
 import React, { ReactElement } from 'react'
-import { ReactViewOptions } from './client'
+import { ReactViewOptions } from '../../lib/client'
 import { IFosInterpreter, INode } from 'fosforescent-js'
 import Cell from './cell'
 import { Crosshair1Icon, DiscIcon, QuestionMarkCircledIcon, PlayIcon, DragHandleDots2Icon, DotsVerticalIcon, ComponentNoneIcon, TrashIcon, PlusCircledIcon  } from '@radix-ui/react-icons'

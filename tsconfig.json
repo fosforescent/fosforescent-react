@@ -28,10 +28,16 @@
     "noUncheckedIndexedAccess": true,
     "noImplicitAny": true,
     "paths": {
+      // "@/dag-implementation/*": [
+      //   "./node_modules/fosforescent-js/src/dag-implementation/*",
+      // ],
+      // "@/interpreter/*": [
+      //   "./node_modules/fosforescent-js/src/interpreter/*",
+      // ],
       "@/*": [
-        "src/*"
+        "src/*",
+        "./node_modules/fosforescent-js/src/*"
       ],
-      "fosforescent-js": ["node_modules/fosforescent-js/src"]
     },
     "strictNullChecks": true
   },

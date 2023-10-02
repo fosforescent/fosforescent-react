@@ -1,6 +1,7 @@
 
 import React from 'react'
 import { Fos, FosOptions, IFosInstance, IFosInterpreter } from 'fosforescent-js'
+import { MockFos } from './mock'
 
 export type ReactViewOptions = {
   breadcrumbs: {setPath: () => void , interpreter: IFosInterpreter}[],
@@ -12,14 +13,21 @@ export type ReactViewOptions = {
  * Should be interchangeable with ReactView below
  */
 
-export const useFos = (options: Partial<FosOptions> = {}) => {
+export const useFos = (options: Partial<FosOptions> & { mock?: boolean } = {}) => {
+
+  const fosInstance = options.mock ? MockFos : Fos
+
   const [optionsState, setOptionsState] = React.useState<Partial<FosOptions>>(options)
-  const [fos, setFos] = React.useState<IFosInstance>(Fos(optionsState))
+
+
+  const [fos, setFos] = React.useState<IFosInstance<any>>(fosInstance(optionsState))
 
   const rootAddress = fos.getRootAddress()
 
+  
+
   React.useEffect(() => {
-    setFos(Fos(optionsState))
+    setFos(fosInstance(optionsState))
   }, [rootAddress])
 
 

@@ -1,5 +1,5 @@
 import React, { ReactElement } from 'react'
-import { ReactViewOptions } from './client'
+import { ReactViewOptions } from '../../lib/client'
 import { IFosInterpreter } from 'fosforescent-js'
 import { Input } from "@/components/ui/input"
 

@@ -1,20 +1,27 @@
 import React from 'react'
-import { IFosInterpreter, FosOptions } from 'fosforescent-js'
+import { IFosInterpreter, FosOptions, IStore, INode } from 'fosforescent-js'
+
 import Root from './root'
-import { useFos } from './client'
+import { useFos } from '../../lib/client'
 
 type MainOptions = {
   demo: boolean
 }
 
-export const MainView = ({path, storeData, options}: { path: string[], storeData?: string, options?: Partial<MainOptions>}) => {
+// export const MainView = ({store, root}: {store: IStore, root: INode}) => {
 
 
-  const [activeItem, setActiveItem] = React.useState(undefined)
+// }
 
 
+export const MainView = ({ interpreter }: { interpreter: IFosInterpreter}) => {
 
-  const fos = useFos()
+
+  const activeItemInterpreter = interpreter.followEdgeFromAlias('activeItem')
+  const pathInterpreter = interpreter.followEdgeFromAlias('path')
+
+
+  const path = pathInterpreter.getValue() as unknown as string[]
 
   const initialStack = React.useMemo(() => path.reduce(
     (acc: [IFosInterpreter, ...IFosInterpreter[]], next: string): [IFosInterpreter, ...IFosInterpreter[]] => {
@@ -24,15 +31,16 @@ export const MainView = ({path, storeData, options}: { path: string[], storeData
       }
       return [nextChild, ...acc] 
     },
-   [fos.getRoot() ]
+   [interpreter]
   ) , [path])
 
 
 
   const breadcrumbs: {setPath: () => void, interpreter: IFosInterpreter}[] = []
 
+  const Root = interpreter.getAction('showRoot')
 
-  return <Root interpreter={fos.getRoot()} options={{breadcrumbs}} />
+  return <Root interpreter={interpreter} options={{breadcrumbs}} />
 }
 
 
