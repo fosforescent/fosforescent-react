@@ -1,6 +1,5 @@
 {
   "compilerOptions": {
-    "baseUrl": ".",
     "types": [
       "jest",
       "node"
@@ -18,26 +17,20 @@
     "strict": true,
     "forceConsistentCasingInFileNames": true,
     "noEmit": true,
-    "incremental": true,
+    "allowImportingTsExtensions": true,
     "esModuleInterop": false,
     "allowSyntheticDefaultImports": true,
     "module": "esnext",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noUncheckedIndexedAccess": true,
     "noImplicitAny": true,
+    "declaration": true,
     "paths": {
-      // "@/dag-implementation/*": [
-      //   "./node_modules/fosforescent-js/src/dag-implementation/*",
-      // ],
-      // "@/interpreter/*": [
-      //   "./node_modules/fosforescent-js/src/interpreter/*",
-      // ],
       "@/*": [
-        "src/*",
-        "./node_modules/fosforescent-js/src/*"
-      ],
+        "./src/*"
+      ]
     },
     "strictNullChecks": true
   },
@@ -45,15 +38,14 @@
     "**/*.ts",
     "**/*.tsx",
     "declarations.d.ts",
-    "src/lib/**/*.d.ts",
-    "src/lib/dnd/multi-backend.js"  
-  ],
+    "lib/**/*.d.ts",
+    "lib/dnd/multi-backend.js"
+, "../vite.config.ts"  ],
   "exclude": [
-    "node_modules"
-  ], 
-  "references": [
-    {
-      "path": "./tsconfig.node.json"
-    }
-  ],
+    "node_modules",
+    "src/components/fos-old/**/*",
+    "src/fos/old/**/*",
+    "src/lib/old/**/*",
+    "src/main"
+  ]
 }

@@ -1,216 +1,191 @@
 import React, { ReactElement, useEffect, useState } from 'react'
-import { IFosInterpreter } from 'fosforescent-js'
-import {  ReactViewOptions } from '../../lib/client'
+import { QuestionMarkCircledIcon, MinusIcon, PlusIcon } from '@radix-ui/react-icons'
+import { Apple, BrainCircuit, CircleEllipsis, DollarSign, Timer, Hammer, Dices, PenBox, ScrollText, FileText, Boxes } from 'lucide-react'
 
-import { HomeIcon } from '@radix-ui/react-icons'
-import { Button } from "@/components/ui/button"
-import { ScreenView } from './screen'
-import {
-  closestCenter,
-  DndContext, 
-  DragEndEvent, 
-  DragOverlay,
-  DragStartEvent,
-  KeyboardSensor,
-  PointerSensor,
-  TouchSensor, 
-  useSensor,
-  useSensors,
-} from '@dnd-kit/core';
-import {
-  arrayMove,
-  SortableContext,
-  sortableKeyboardCoordinates,
-  verticalListSortingStrategy,
-} from '@dnd-kit/sortable';
+// import { TreeIcon } from '@radix-ui/react-icons'
+import {  FosContext, FosTrail, FosNode, FosPath, FosNodeContent } from "../../fos/temp-types"
+
+import { Button } from '../ui/button';
+import { Input } from '../ui/input';
+
+import { RowsComponent } from './rows';
 
 
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
+import { useWindowSize } from '../window-size';
+import { MergeRowsComponent } from './mergeRows';
 
-const Breadcrumbs = ({
-  interpreter,
-  options,
+
+import { FosModule, FosModuleName, fosModules } from './modules/fosModules';
+import { FosReactOptions } from '.';
+
+
+
+export function RootScreenView({
+  context,
+  // updateNodes,
+  node,
+  
+  // updateNodes,
+  dragging,
+  dragOverInfo,
+  // trail,
+  // updateTrail,
+  options: fosReactOptions
 }: {
-  interpreter: IFosInterpreter,
-  options: ReactViewOptions 
+  context: FosContext,
+  // updateNodes: (nodes: any) => void,
+  node: FosNode,
+  // updateNodes: (nodes: FosContext) => void
+  dragOverInfo: { id: string, position: 'above' | 'below' | 'on', node: FosNode } | null,
+
+  dragging:  { id: string, node: FosNode } | null
+  options: FosReactOptions
+  // trail: FosTrail
+  // updateTrail: (trail: FosTrail) => void
+}) {
+
+
+  // const availableModules = (Object.keys(fosModules) as FosModuleName[]).map((module: FosModuleName) => fosModules[module as FosModuleName]).filter((module: FosModule) => {
+  //   console.log('module', module.name, module.name !== 'workflow', node.getRoute().length > 1)
+  //   return (node.getRoute().length <= 1) ?  (module.name !== 'workflow') : true 
+  // })
+
+  const availableModules = (Object.keys(fosModules) as FosModuleName[]).map((module: FosModuleName) => fosModules[module as FosModuleName])
+  // console.log('availableModules', availableModules)
+  // const workflowIsAvailable = availableModules.find((module: FosModule) => module.name === 'workflow')
+
+  const [activeModule, setActiveModule] = useState<FosModule | undefined >( node.getRoute().length > 1 ? fosModules.workflow : undefined)
+
+
+  const rows = node.getChildren()
+
+  // console.log('root - node', node, context)
+  // const value = nodes[leftNode]?.value
+
+
+
+  const windowSize = useWindowSize()
+
+  const rowDepth = React.useMemo(() => {
+    if (windowSize.width !== undefined){
+      return Math.floor( (windowSize.width - 500 )/ 100) 
+      // return 1
+    } else {
+      return 0
+    }
+  }, [windowSize])
+  // console.log('rowDepth', rowDepth)
+  // console.log('screen items', )
+  // console.log('screen', leftNode, rightNode, trail, nodes, dragging)
+
+
+  
+  return (<div>
+    {<div style={{padding: '15px 0px'}}>
+      <RootScreenHead node={node} context={context} activeModule={activeModule} setActiveModule={setActiveModule} availableModules={availableModules} options={fosReactOptions} />
+        {/* <AddOption /> */}
+    </div>}
+    <div>
+      {node.hasMerge() 
+        ? <MergeRowsComponent rowDepth={rowDepth} context={context} dragging={dragging} parentNode={node} dragOverInfo={dragOverInfo} locked={context.locked} activeModule={activeModule} options={fosReactOptions}  />
+        : <RowsComponent rows={rows} rowDepth={rowDepth} context={context} dragging={dragging} parentNode={node} dragOverInfo={dragOverInfo} locked={context.locked} activeModule={activeModule} options={fosReactOptions} />}
+    </div>
+
+
+      {/* {node.data.duration && <GanttComponent root={node} />} */}
+      {/* <DataComponent node={node} trail={trail} forceUpdate={forceUpdate} /> */}
+      {/* {node.data.cost && <CostComponent root={node} forceUpdate={forceUpdate} />} */}
+  </div>)
+
+}
+
+
+
+
+
+export const RootScreenHead = ({  
+  node,
+  context,
+  activeModule,
+  setActiveModule,
+  availableModules,
+  options: fosReactOptions
+}: {
+  node: FosNode,
+  context: FosContext,
+  activeModule: FosModule | undefined,
+  setActiveModule: (module: FosModule | undefined) => void,
+  availableModules: FosModule[],
+  options: FosReactOptions
 }) => {
 
-  return (<>
-    {options.breadcrumbs.map((item, index) => {
-      const handleClick = () => {
-        item.setPath()
+
+  /**
+   * 
+   * Validate value before showing
+   * 
+   * If value has native value, then apply appropriately to component
+   */
+
+  const [showAllActions, setShowAllActions] = React.useState(false)
+
+
+
+  // console.log('canSuggest', canSuggest, appState.info.subscription?.apiCallsAvailable, appState.info.subscription?.apiCallsUsed, appState.info.subscription, appState.info, appState)
+
+
+
+  const handleAllActionsButtonClick = () => {
+    if (showAllActions) {
+      if (activeModule !== undefined){
+        setActiveModule(undefined)
+      } else {
+        setShowAllActions(false)  
       }
-      return (
-        <Button key={index + 1} onClick={handleClick} variant="secondary">{item.interpreter.getName()}</Button>
-      )
-    })}
+    } else {
+      setShowAllActions(true)
+    }
+  }
+
+
+  const handleModuleClick = (module: FosModule) => {
+    setActiveModule(module)
+    setShowAllActions(false)
+  }
+
+  const HeadComponent = activeModule?.HeadComponent || (() => <></>)
+
+  // console.log('activeModule', activeModule, availableModules)
+
+  return (<>
+    <div>
+      <div>
+        <div className={`flex-row flex w-full px-1 `}>
+          <div className={`px-0 flex-grow overflow-x-hidden transition-all duration-500 ${showAllActions ? 'w-none' : ''}`}>
+            <HeadComponent node={node} options={fosReactOptions} />
+          </div>
+          <div className={`px-3 flex flex-row w-auto transition-all duration-500 items-stretch`}>
+  
+            {showAllActions && (
+
+              (availableModules).map((module: FosModule, index: number) => {
+                return <Button key={index} onClick={() => handleModuleClick(module)} variant='ghost' className={`h-full ${activeModule?.name === module.name ? 'bg-stone-900' : 'bg-stone-700'}`}>{module.icon}</Button>
+              })
+            )}
+  
+            <div className={`overflow-x-hidden h-full`}>
+              <Button onClick={handleAllActionsButtonClick}  variant='ghost' className='self-center h-full'>
+                {showAllActions 
+                  ? <CircleEllipsis className='rotate-90' />  
+                  : <CircleEllipsis />}
+              </Button>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
   </>)
 }
 
-const Root = ({
-  interpreter,
-  options,
-}: {
-  interpreter: IFosInterpreter
-  options: ReactViewOptions
-}) => {
-  // const router = useRouter()
 
-  // const id = useParams()
-
-  // const [selected, setSelected] = React.useState<number>(0)
-  const [activeId, setActiveId] = useState<string | null>(null);
-
-  // const selectedChild = React.useMemo(() => {
-  //   const tasks = interpreter.getTasks()
-  //   if (!tasks || tasks.length === 0) {
-  //     throw new Error('no tasks')
-  //   }
-  //   return interpreter.getTasks()[selected] as IFosInterpreter
-  // }, [interpreter, selected])
-
-  // useEffect(() => {
-  //   if (selectedChild !== undefined) {
-  //     options.setStack(selectedChild.getStack())
-  //   } 
-  // }, [selected])
-
-  // useEffect(() => {
-  //   if(interpreter && selected === undefined) {
-  //     const tasks = interpreter.getTasks()
-  //     if (tasks && tasks.length > 0){
-  //       setSelected(0)
-  //     }
-  //     console.log ('tasks here', tasks, interpreter.getDisplayString())
-  //     interpreter.getChildren().map((x) => {
-  //       console.log('tassks', x.getStubString())
-  //       return x
-  //     })
-  //   }
-  // }, [interpreter, selected])
-
-  
-  // const handleWorkflowSelect = (e: any) => {
-  //   setSelected(e.target.value)
-  // }
-
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        delay: 250,
-        tolerance: 5,
-      }
-    }),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    }), 
-    useSensor(TouchSensor, {
-      activationConstraint: {
-        delay: 250,
-        tolerance: 5,
-      }
-    })
-  );
-  
-  function handleDragStart(event: DragStartEvent) {
-    const {active} = event;
-    
-    setActiveId(active.id);
-  }
-  
-  function handleDragEnd(event: DragEndEvent) {
-    const {active, over} = event;
-    console.log('drag end', active, over)
-    
-    if (active.id !== over?.id) {
-      const reorderItems = (items: (string | null)[]) => {
-        const oldIndex = items.indexOf(active.id);
-        const newIndex = items.indexOf(over?.id || null);
-        
-        return arrayMove(items, oldIndex, newIndex);
-      };
-      console.log('selectedChild info - children', interpreter.getChildren().map(x => x.getDisplayString()), 
-      'selectedChildOrder', interpreter.getDisplayString(), 
-      'new Order', reorderItems(interpreter.getChildren().map((task) => task.getStubString())))
-      const newStack = interpreter.reorderTargetEdges(reorderItems(interpreter.getChildren().map((task) => task.getStubString()))) 
-      console.log('reordered edge stack', newStack.map(x => x.getDisplayString()))
-      // options.setStack(newStack)
-      
-    }
-    
-    setActiveId(null);
-  }
-
-
-  const newOptions = {
-    ...options,
-    remainingPath: [],
-    urlTrail: interpreter.getStack().map(x => x.getStubString()),
-  }
-
-  // const interpreterInstruction = React.useMemo(() => {
-  //   return interpreter.getInstruction()
-  // }, [interpreter])
-
-  // const ScreenView = React.useMemo(() => {
-  //   const screenComponent =  interpreter.getAction('showScreen')
-  //   return screenComponent
-  // }, [interpreterInstruction])
-
-  return (
-    <DndContext 
-        sensors={sensors}
-        collisionDetection={closestCenter}
-        onDragStart={handleDragStart}
-        onDragEnd={handleDragEnd}
-      >
-      <div className='w-full'> 
-        <div className='flex w-full'>
-          <div className='grow'>
-            <Breadcrumbs options={options} interpreter={interpreter}/>
-          </div>
-          {/* <div className='flex-none'>
-            <Select onValueChange={handleWorkflowSelect} value={selected.toString()}>
-              <SelectTrigger className="w-[180px]">
-                {selectedChild.getName()}
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup>
-                  <SelectLabel>Workflows</SelectLabel>
-              {interpreter.getTasks().map((task: IFosInterpreter, index: number) => (
-                <SelectItem key={index} value="index">{task.getName()}</SelectItem>
-              ))}
-                </SelectGroup>
-              </SelectContent>
-            </Select>
-          </div> */}
-        </div>
-        <div className="w-full">
-        { <ScreenView interpreter={interpreter} options={newOptions} dragging={activeId} />}
-        </div>
-        {/* <div>
-          {path.map((client, index) => (
-            <BreadcrumbComponent
-              key={index}
-              name={client.getCurrentName()}
-              forceUpdate={forceUpdate}
-              url={getURLFromPath(path.slice(0, index + 1))}
-              current={index === path.length - 1}
-            />
-          ))}
-        </div>
-        <TaskView client={currentClient} forceUpdate={forceUpdate} /> */}
-      </div>
-    </DndContext>
-  )
-}
-
-export default Root

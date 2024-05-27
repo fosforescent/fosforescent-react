@@ -1,0 +1,36 @@
+import * as React from "react";
+export declare function ComboboxEditable({ values, searchMessage, selectMessage, emptyMessage, defaultValue, selectedIndex, handleTextEdit, isDragging, draggingOver, draggingOn, handleChange, addYoungerSibling, moveLeft, moveRight, moveUp, moveDown, moveFocusUp, moveFocusDown, deleteOption, deleteRow, addOption, handleUndo, handleRedo, toggleCollapse, variant, hasFocus, focusChar, setFocus, suggestOption, locked, ...props }: {
+    values: {
+        value: string;
+        label: string;
+    }[];
+    emptyMessage?: string;
+    selectMessage?: string;
+    searchMessage?: string;
+    defaultValue?: string;
+    selectedIndex: number;
+    handleTextEdit: (value: string, focusChar: number) => void;
+    handleChange: (value: string) => void;
+    addYoungerSibling: () => void;
+    moveLeft: () => void;
+    moveRight: () => void;
+    moveFocusUp: () => void;
+    moveFocusDown: () => void;
+    handleUndo: () => void;
+    handleRedo: () => void;
+    isDragging: boolean;
+    draggingOver?: boolean;
+    draggingOn?: boolean;
+    moveUp: () => void;
+    moveDown: () => void;
+    deleteRow: () => void;
+    addOption: () => void;
+    deleteOption: (index: number) => void;
+    toggleCollapse: () => void;
+    variant?: "default" | "text-mimic";
+    hasFocus?: boolean;
+    focusChar?: number;
+    setFocus: (focusChar: number) => void;
+    suggestOption: () => void;
+    locked: boolean;
+} & React.HTMLAttributes<HTMLButtonElement>): import("react/jsx-runtime").JSX.Element;

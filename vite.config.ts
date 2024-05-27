@@ -2,30 +2,76 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import viteTsconfigPaths from 'vite-tsconfig-paths';
 import svgr from 'vite-plugin-svgr'
+import dotenv from 'dotenv'
+import { libInjectCss } from 'vite-plugin-lib-inject-css'
+import { resolve } from 'path'
+import autoprefixer from "autoprefixer";
+
+import tailwindcss from "tailwindcss";
+
+dotenv.config() // load env vars from .env
+
 
 export default defineConfig(() => {
   return {
+    define: {
+      __LOCAL_SYC_API_URL__: `"${process.env.LOCAL_SYC_API_URL}"`, // wrapping in "" since it's a string
+      __DEV_SYC_API_URL__: `"${process.env.DEV_SYC_API_URL}"`, // wrapping in "" since it's a string
+      __PROD_SYC_API_URL__: `"${process.env.PROD_SYC_API_URL}"`, // wrapping in "" since it's a string
+      __TEST_SYC_API_URL__: `"${process.env.TEST_SYC_API_URL}"`, // wrapping in "" since it's a string
+    },
+
     build: {
-      outDir: 'build',
+      copyPublicDir: false,
+      lib: {
+        entry: resolve(__dirname, 'src/index.ts'),
+        name: 'Fosforescent React',
+        // the proper extensions will be added
+        fileName: 'fosforescent-react',
+        // formats: libFormats,
+      },
       rollupOptions: {
-        external: ['@/dag-implementation/*', '@/interpreter/*']
+        external: ['react', 'react-dom', 'react/jsx-runtime'],
+        // input: Object.fromEntries(
+        //   glob.sync('src/**/*.{ts,tsx}').map(file => [
+        //     // The name of the entry point
+        //     // lib/nested/foo.ts becomes nested/foo
+        //     relative(
+        //       'src',
+        //       file.slice(0, file.length - extname(file).length)
+        //     ),
+        //     // The absolute path to the entry file
+        //     // lib/nested/foo.ts becomes /project/lib/nested/foo.ts
+        //     fileURLToPath(new URL(file, import.meta.url))
+        //   ])
+        // ),
+        output: {
+          // inlineDynamicImports: false,
+          // assetFileNames: 'assets/[name][extname]',
+          // entryFileNames: '[name].js',
+          globals: {
+            react: 'React',
+            'react-dom': 'ReactDOM',
+            'react/jsx-runtime': 'jsxRuntime',
+            tailwindcss: 'tailwindcss',
+          },
+        },
+        plugins: []
       }
     },
-    // resolve: {
-    //   alias: {
-    //     '@': './src',
-    //     '@/dag-implementation/*': './node-modules/fosforescent-js/src/dag-implementation/*',
-    //     '@/interpreter/*': './node-modules/fosforescent-js/src/interpreter/*',
-    //   }
-    // },
-    plugins: [react(), viteTsconfigPaths(), svgr({ svgrOptions: { icon: true } })],
-    server: {
-      fs: {
-        allow: ['./..']
+    plugins: [
+      react(), 
+      viteTsconfigPaths(), 
+      svgr({ svgrOptions: { icon: true } }),
+      libInjectCss()
+    ],
+    css: {
+      postcss: {
+        plugins: [
+          tailwindcss,
+          autoprefixer,
+        ],
       }
-    },
-    optimizeDeps: {
-      include: ['fosforescent-js'],
-    },
+    }
   };
 });
