@@ -1,8 +1,10 @@
-import { on } from 'events';
 import React, { useEffect, useRef } from 'react';
+import moduleStyles from './inputDiv.module.css';
+import { ThemeProvider } from '../theme-provider';
 
-interface InputDivProps {
-  value: string | undefined;
+
+export interface InputDivProps {
+  value: string;
   onChange: (value: string, cursorPos: number) => void;
   onFocus?: (char: number) => void;
   onClick?: (e: React.MouseEvent<HTMLDivElement>) => void;
@@ -14,6 +16,7 @@ interface InputDivProps {
   autoFocus?: boolean;
   placeholder: string;
   focusChar?: number;
+  getFocus: () => void;
 }
 
 export const InputDiv: React.FC<InputDivProps> = ({
@@ -29,28 +32,40 @@ export const InputDiv: React.FC<InputDivProps> = ({
   autoFocus,
   placeholder,
   focusChar,
+  getFocus,
   ...props
 }) => {
   const divRef = useRef<HTMLDivElement>(null);
 
   
+  const hasFocus = divRef?.current === document.activeElement;
 
   useEffect(() => {
     if (autoFocus && divRef.current) {
-      console.log('here', focusChar, autoFocus)
+      console.log("GOT FOCUS")
       divRef.current.focus();
     }
   }, [autoFocus]);
 
+  useEffect(() => {
+    if (!hasFocus){
+      return
+    }
+    if(!divRef.current){
+      return 
+    }
+    setCursorPosition(divRef.current, focusChar || 0)
+  }, [focusChar]);
+
   const updateInput = () => {
-    console.log('input', divRef.current);
+
     if (!divRef.current) {
       return;
     }
     const cursorPosition = getCursorPosition(divRef.current);
-    console.log('updateInput', cursorPosition);
-    value ? onChange(value, cursorPosition) : onChange('', cursorPosition);
-    setCursorPosition(divRef.current, cursorPosition);
+    const newValue = divRef.current.innerText;
+    onChange(newValue, cursorPosition);    
+
   };
 
   const handleBlur = (e: React.FocusEvent<HTMLDivElement>) => {
@@ -62,72 +77,61 @@ export const InputDiv: React.FC<InputDivProps> = ({
     if (!divRef.current) {
       return;
     }
-    const cursorPosition = getCursorPosition(divRef.current);
-    onFocus && onFocus(cursorPosition);
+    updateInput();
   };
 
-
-  useEffect(() => {
-    if (divRef.current) {
-      if (value === undefined) {
-        divRef.current.innerText = '';
-      } else {
-        divRef.current.innerText = value;
-      }
-    }
-  }, [value]);
   
-  const handleInput = (e: React.FormEvent<HTMLDivElement>) => {
-    if (value !== undefined){
-      updateInput();
+  const handleMouseUp = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!divRef.current) {
+      return;
     }
-  };
-
-  useEffect(() => {
-    if (divRef.current) {
-      if (value) {
-        divRef.current.innerText = value;
-      } else {
-        divRef.current.innerText = '';
-      }
-    }
-  }, [value]);
-
+    getFocus();
+    updateInput();
+  }
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
     onKeyDown && onKeyDown(e);
+    if (!divRef.current) {
+      return;
+    }
+    updateInput();
   };
 
   const handleKeyUp = (e: React.KeyboardEvent<HTMLDivElement>) => {
     onKeyUp && onKeyUp(e);
+    if (!divRef.current) {
+      return;
+    }
+    updateInput();
   }
 
-  const hasFocus = divRef?.current === document.activeElement;
+
+  const placeholderClassName = divRef.current?.innerText ? moduleStyles.inputDiv : moduleStyles.emptyInputDiv
+
 
   return (
-    <div
-      ref={divRef}
-      contentEditable={!disabled}
-      autoFocus={autoFocus}
-      placeholder={placeholder}
-      className={`h-full w-full border-none ${!value ? 'text-white/50' : 'text-white'} ${className}`}
-      style={{
-        ...style,
-        position: 'relative'
-      }}
-      onInput={handleInput}
-      onFocus={handleFocus}
-      onBlur={handleBlur}
-      onClick={onClick}
-      onKeyDown={handleKeyDown}
-      onKeyUp={handleKeyUp}
-      // onMouseUp={handleMouseUp}
-      {...props}
-      suppressContentEditableWarning={true}
-    >
-      {value || ''}
-      {!value && !hasFocus && <span>{placeholder}</span>}
-    </div>
+      <div
+        ref={divRef}
+        contentEditable={!disabled}
+        placeholder={placeholder}
+        className={`h-full w-full border-none ${!value ? 'empty' : ''} ${className} ${placeholderClassName}`}
+        style={{
+          ...moduleStyles,
+          ...style,
+          position: 'relative'
+        }}
+        onInput={updateInput}
+        onFocus={handleFocus}
+        // onBlur={handleBlur}
+        onClick={onClick}
+        onKeyDown={handleKeyDown}
+        onKeyUp={handleKeyUp}
+        // onMouseUp={handleMouseUp}
+        suppressContentEditableWarning={true}
+        tabIndex={0}
+      >
+        {value}
+      </div>
   );
 };
 
@@ -180,12 +184,13 @@ const setCursorPosition = (divElement: HTMLDivElement, pos: number) => {
     NodeFilter.SHOW_TEXT,
     null,
   );
-
+  
   let currentNode;
   let currentPos = 0;
   while ((currentNode = iterator.nextNode())) {
     const nodeLength = currentNode.textContent?.length ?? 0;
     if (currentPos + nodeLength >= pos) {
+
       range.setStart(currentNode, pos - currentPos);
       range.collapse(true);
       selection?.removeAllRanges();
@@ -194,7 +199,6 @@ const setCursorPosition = (divElement: HTMLDivElement, pos: number) => {
     }
     currentPos += nodeLength;
   }
-
   // If position is out of bounds, place cursor at the end
   range.setStart(divElement, divElement.childNodes.length);
   range.collapse(true);

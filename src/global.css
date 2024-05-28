@@ -3,7 +3,7 @@
 @tailwind utilities;
  
 @layer base {
-  :root {
+  .fos-root {
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
 
@@ -72,5 +72,17 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+@layer utilities {
+  /* Chrome, Safari and Opera */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .no-scrollbar {
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
   }
 }

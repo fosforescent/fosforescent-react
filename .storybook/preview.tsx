@@ -1,6 +1,5 @@
 import React from 'react'
 import { Preview } from '@storybook/react';
-import '../src/main/globals.css'
 
 
 
@@ -21,6 +20,7 @@ const preview: Preview = {
   decorators: [
     (Story, { globals } ) => {
       console.log('globals', globals)
+
       return (
       <ThemeProvider defaultTheme={globals.theme} storageKey="vite-ui-theme">
         {/* 👇 Decorators in Storybook also accept a function. Replace <Story/> with Story() to enable it  */}

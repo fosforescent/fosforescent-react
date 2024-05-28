@@ -54,6 +54,7 @@ export function ComboboxEditable({
   focusChar,
   setFocus,
   suggestOption,
+  getFocus,
   locked,
   ...props
 }: {
@@ -85,6 +86,7 @@ export function ComboboxEditable({
   hasFocus?: boolean,
   focusChar?: number,
   setFocus: (focusChar: number) => void,
+  getFocus: () => void,
   suggestOption: () => void,
   locked: boolean,
 } & React.HTMLAttributes<HTMLButtonElement>) {
@@ -274,8 +276,9 @@ export function ComboboxEditable({
           autoFocus={hasFocus}
           placeholder={values.length > 1 ? "New Option" : "Enter a task to plan"}
           className="rounded-r-none w-full cursor-text"
+          getFocus={getFocus}
           value={value
-            ? values.find((item) => item.value === value)?.label
+            ? values.find((item) => item.value === value)?.label || ""
             : selectMessage} 
           style={{
             width: 'calc(100% - 1.25rem)',
@@ -290,7 +293,6 @@ export function ComboboxEditable({
           onClick={(e) => { /* console.log("here"); */ e.stopPropagation()}}
           onKeyDown={keyDown}
           onKeyUp={keyPresses}
-          onFocus={(char => setFocus(char))}
           focusChar={focusChar}
           />
           <div className="flex w-5 justify-center items-center flex p-0"

@@ -36,7 +36,6 @@ import { FosReactOptions } from '.'
 
 export const StepRow = ({
   node,
-  updateNodes,
   rowDepth,
   handleTextEdit,
   handleChange,
@@ -57,7 +56,6 @@ export const StepRow = ({
   options: fosReactOptions
 }: {
   node: FosNode,
-  updateNodes: ( newNodes: FosContext) => void
   rowDepth: number,
   handleTextEdit: (value: string, focusChar: number) => void,
   handleChange: (value: string) => void,
@@ -270,6 +268,11 @@ export const StepRow = ({
     }
   }
   
+  const getFocus = () => {
+    console.log('HERE focus')
+    context.setFocus(node.getRoute(), focusChar)
+  }
+
   // console.log('mergeDiff', mergeDiff, nodeOptions, node.context.data.nodes[nodeOptions.mergeNode!], hasMergeID, hasMerge)
 
   // console.log('mergeDiff', mergeDiff)
@@ -319,7 +322,7 @@ export const StepRow = ({
             node={node} 
             hasChildren={children.length > 0}
             context={context}
-            updateNodes={updateNodes} />
+             />
             
         </span> 
       </div>
@@ -330,6 +333,7 @@ export const StepRow = ({
             className='w-full bg-transparent'
             handleTextEdit={handleTextEdit}
             handleChange={handleChange}
+            getFocus={getFocus}
             addYoungerSibling={addYoungerSibling}
             moveLeft={moveLeft}
             moveRight={moveRight}
@@ -397,13 +401,11 @@ export function MenuComponent({
   // allowedChildren,
   hasChildren,
   context,
-  updateNodes,
 
 }: {
   node: FosNode,
   hasChildren: boolean
   context: FosContext
-  updateNodes: (nodes: FosContext) => void
 }) {
 
   const [menuOpen, setMenuOpen] = React.useState(false)
@@ -430,7 +432,7 @@ export function MenuComponent({
   const deleteNode = () => {
     
     const newContext = context.deleteNode(node.getRoute())
-    updateNodes(newContext)
+    newContext.updateData(newContext.data)
     setMenuOpen(false)
   }
 
@@ -438,7 +440,7 @@ export function MenuComponent({
 
   
     const newContext = context.snipNode(node.getRoute())
-    updateNodes(newContext)
+    newContext.updateData(newContext.data)
     setMenuOpen(false)
 
   }

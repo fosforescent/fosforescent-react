@@ -10,10 +10,10 @@ import {
   FosContext,
   FosTrail,
   FosNode
- } from '@/fos/temp-types'
+ } from '@fosforescent/fosforescent-js'
 
  import './global.css'
- import './App.css'
+ import './index.css'
 
 import { FosReactOptions } from '@/components/fos/index'
 
@@ -25,10 +25,13 @@ export type {
   FosContextData,
   FosRoute,
   FosNodesData,
-  FosContext,
   FosNodeContent,
   FosNodeData,
   FosPath,
   FosTrail,
+}
+
+export {
+  FosContext,
   FosNode
 }

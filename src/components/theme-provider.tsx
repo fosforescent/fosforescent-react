@@ -4,6 +4,7 @@ type ThemeProviderProps = {
   children: React.ReactNode
   defaultTheme?: string
   storageKey?: string
+  rootSelector?: string 
 }
 
 type ThemeProviderState = {
@@ -22,6 +23,7 @@ export function ThemeProvider({
   children,
   defaultTheme = "system",
   storageKey = "vite-ui-theme",
+  rootSelector = ".fos-root",
   ...props
 }: ThemeProviderProps) {
   const [theme, setTheme] = useState(
@@ -29,8 +31,11 @@ export function ThemeProvider({
   )
 
   useEffect(() => {
-    const root = window.document.documentElement
-
+    const root = document.querySelector(rootSelector)
+    if (!root) {
+      throw new Error ('Root element does not exist in DOM')
+    }
+    
     root.classList.remove("light", "dark")
 
     if (theme === "system") {
@@ -40,7 +45,6 @@ export function ThemeProvider({
         : "light"
 
       root.classList.add(systemTheme)
-      return
     }
 
     root.classList.add(theme)

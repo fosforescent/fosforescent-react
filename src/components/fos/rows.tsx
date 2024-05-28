@@ -108,11 +108,6 @@ export const RowsComponent = ({
     }
   })
 
-  const updateNodes = (newNodes: FosContext) => {
-    // console.log('updateNodesCalledFromRows', newNodes.data.nodes)
-    context.setNodes(newNodes.data.nodes)
-  }
-
   // console.log('rows', rows)
 
   const windowSize = useWindowSize()
@@ -155,7 +150,7 @@ export const RowsComponent = ({
           const handleAddOption = (index?: number) => {
             console.log('handleAddOption', index)
             const newNodes = context.addOptionToNode(node.getRoute(), undefined, index);
-            updateNodes(newNodes)
+            context.setNodes(newNodes.data.nodes)
           }
 
           const handleAddYoungerSibling = () => {
@@ -182,8 +177,7 @@ export const RowsComponent = ({
                 addYoungerSibling={() => handleAddYoungerSibling()}
                 moveLeft={moveLeft}
                 moveRight={moveRight}
-                deleteRow={deleteRow}
-                updateNodes={updateNodes} 
+                deleteRow={deleteRow} 
                 moveDown={moveDown}
                 moveUp={moveUp}
                 deleteOption={deleteOption}
@@ -220,7 +214,6 @@ const DragRow = ({
   dragging,
   dragOverInfo,
   index,
-  updateNodes,
   rowDepth,
   addYoungerSibling,
   moveLeft,
@@ -239,7 +232,6 @@ const DragRow = ({
   index: number
   dragging:  { id: string, node: FosNode } | null,
   dragOverInfo:  { id: string, position: 'above' | 'below' | 'on', node: FosNode } | null,
-  updateNodes: (nodes: any) => void
   rowDepth: number
   context: FosContext
   // handleTextEdit: (value: string) => void,
@@ -270,18 +262,17 @@ const DragRow = ({
     console.log('handleChange', e)
     const updatedNode = {...nodeOptions , selectedOption: parseInt(e)}
     const newContext = context.setNode(node, updatedNode)
-    updateNodes(newContext)
+    newContext.updateData(newContext.data)    
     // selectStateSet(e.target.value)
   }
 
   const handleTextEdit = (e: string, focusChar: number) => {
-    // console.log('handleTextEdit', e, focusChar)
     // const updatedNode = {...selectedNodeValue, value: {...selectedNodeValue.value, description: e}}
     const updatedNode = {...node.getOptionContent(), description: e}
     const newNodeData = node.updateOptionData(updatedNode)
-    const newContext = context.setNode(node, newNodeData)
-    const newContextWithNewFocus = newContext.setFocus(node.getRoute(), focusChar)
-    updateNodes(newContextWithNewFocus)
+    const newContextWithNewFocus = context.setFocus(node.getRoute(), focusChar)
+    const newContextWithNode = newContextWithNewFocus.setNode(node, newNodeData)
+    newContextWithNewFocus.updateData(newContextWithNode.data)
   }
 
   const toggleCollapse = () => {
@@ -289,6 +280,7 @@ const DragRow = ({
     const updatedNode = {...nodeData, collapsed: !nodeOptions.collapsed}
     console.log('collapseNodeData', nodeData, nodeOptions.collapsed, updatedNode)
     node.setNodeData(updatedNode)
+    node.context.updateData(node.context.data)
   }
 
 
@@ -299,7 +291,6 @@ const DragRow = ({
         {!node.hasMerge() ? (<StepRow
           node={node}
           dragItem={item}
-          updateNodes={updateNodes} 
           dragging={dragging}
           dragOverInfo={dragOverInfo}
           locked={locked}
@@ -320,7 +311,6 @@ const DragRow = ({
         />) : (<MergeRow
           node={node}
           dragItem={item}
-          updateNodes={updateNodes} 
           dragging={dragging}
           dragOverInfo={dragOverInfo}
           locked={locked}

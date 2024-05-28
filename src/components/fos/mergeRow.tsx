@@ -40,7 +40,6 @@ import { FosReactOptions } from '.'
 
 export const MergeRow = ({
   node,
-  updateNodes,
   rowDepth,
   handleChange,
   moveLeft,
@@ -57,7 +56,6 @@ export const MergeRow = ({
   options
 }: {
   node: FosNode,
-  updateNodes: ( newNodes: FosContext) => void
   rowDepth: number,
   handleChange: (value: string) => void,
   moveLeft: () => void,
@@ -206,17 +204,17 @@ export const MergeRow = ({
 
   const acceptMerge = () => {
     const newContext = node.acceptMerge()
-    updateNodes(newContext)
+    newContext.updateData(newContext.data)
   }
 
   const rejectMerge = () => {
       const newContext = node.rejectMerge()
-      updateNodes(newContext)
-  }
+      newContext.updateData(newContext.data)
+    }
 
   const bothMerge = () => {
     const newContext = node.bothMerge()
-    updateNodes(newContext)
+    newContext.updateData(newContext.data)
   }
   
 
@@ -266,7 +264,7 @@ export const MergeRow = ({
               node={node} 
               hasChildren={children.length > 0}
               context={context}
-              updateNodes={updateNodes} />
+               />
               
           </span>
           <span
@@ -356,13 +354,11 @@ export function MenuComponent({
   // allowedChildren,
   hasChildren,
   context,
-  updateNodes,
 
 }: {
   node: FosNode,
   hasChildren: boolean
   context: FosContext
-  updateNodes: (nodes: FosContext) => void
 }) {
 
   const [menuOpen, setMenuOpen] = React.useState(false)
@@ -389,7 +385,7 @@ export function MenuComponent({
   const deleteNode = () => {
     
     const newContext = context.deleteNode(node.getRoute())
-    updateNodes(newContext)
+    newContext.updateData(newContext.data)
     setMenuOpen(false)
   }
 
@@ -397,7 +393,7 @@ export function MenuComponent({
 
   
     const newContext = context.snipNode(node.getRoute())
-    updateNodes(newContext)
+    newContext.updateData(newContext.data)
     setMenuOpen(false)
 
   }

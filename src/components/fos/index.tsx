@@ -43,6 +43,7 @@ import { DroppableContainersMap } from '@dnd-kit/core/dist/store/constructors';
 import { StepRow } from './step';
 import { FosModule } from './modules/fosModules'
 import initData from './initialData'
+import { ThemeProvider } from '../theme-provider'
 
 
 export type FosReactOptions = Partial<{
@@ -62,7 +63,8 @@ export type FosReactOptions = Partial<{
   modules: {
     core: string[],
     custom: FosModule[]
-  } 
+  },
+  theme: "light" | "dark" | "system",
 }>
 
 
@@ -79,10 +81,15 @@ export const MainView = ({
 
 
   const context = React.useMemo(() => {
-    console.log('creating new context', data?.nodes, data?.focus)
+ 
+    const setDataWrapped = (e: any) => {
+      console.log("Setting Data", e.focus)
+      // console.trace()
+      setData(e)
+    }
 
     const dataToUse = data ? data : initData
-    const newContext = new FosContext(dataToUse, setData)
+    const newContext = new FosContext(dataToUse, setDataWrapped)
     return newContext
   }, [data, setData])
 
@@ -361,6 +368,7 @@ export const MainView = ({
 
 
   return (
+    <ThemeProvider defaultTheme={options?.theme || "system"}>
     <DndContext 
         sensors={sensors}
         collisionDetection={customCollisionDetection}
@@ -368,7 +376,7 @@ export const MainView = ({
         onDragEnd={handleDragEnd}
         onDragOver={handleDragOver}
       >
-      <div className='w-full'> 
+      <div className='w-full fos-root' > 
         <div className='flex w-full px-3 items-center overflow-x-scroll no-scrollbar'>
             {trail.length > 1 && trail.map((item, index) => {
               
@@ -387,6 +395,7 @@ export const MainView = ({
       </div>
 
     </DndContext>
+    </ThemeProvider>
   )
 }
 

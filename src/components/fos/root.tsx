@@ -22,10 +22,8 @@ import { FosReactOptions } from '.';
 
 export function RootScreenView({
   context,
-  // updateNodes,
   node,
   
-  // updateNodes,
   dragging,
   dragOverInfo,
   // trail,
@@ -33,9 +31,7 @@ export function RootScreenView({
   options: fosReactOptions
 }: {
   context: FosContext,
-  // updateNodes: (nodes: any) => void,
   node: FosNode,
-  // updateNodes: (nodes: FosContext) => void
   dragOverInfo: { id: string, position: 'above' | 'below' | 'on', node: FosNode } | null,
 
   dragging:  { id: string, node: FosNode } | null
