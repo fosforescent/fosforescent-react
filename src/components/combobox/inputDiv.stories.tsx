@@ -82,6 +82,7 @@ const Template: StoryFn<TplProps> = (args: any) => {
         onKeyUp={keyPresses}
         onFocus={onFocus}
         focusChar={focusChar}
+        getFocus={() => setAutoFocus(true)}
         />
     </div>
     // <WorkflowComponent node={node} edge={view} path={[[view, node]]} forceUpdate={forceUpdate} />

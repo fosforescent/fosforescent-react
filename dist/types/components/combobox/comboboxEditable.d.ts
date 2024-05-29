@@ -1,5 +1,5 @@
 import * as React from "react";
-export declare function ComboboxEditable({ values, searchMessage, selectMessage, emptyMessage, defaultValue, selectedIndex, handleTextEdit, isDragging, draggingOver, draggingOn, handleChange, addYoungerSibling, moveLeft, moveRight, moveUp, moveDown, moveFocusUp, moveFocusDown, deleteOption, deleteRow, addOption, handleUndo, handleRedo, toggleCollapse, variant, hasFocus, focusChar, setFocus, suggestOption, locked, ...props }: {
+export declare function ComboboxEditable({ values, searchMessage, selectMessage, emptyMessage, defaultValue, selectedIndex, handleTextEdit, isDragging, draggingOver, draggingOn, handleChange, addYoungerSibling, moveLeft, moveRight, moveUp, moveDown, moveFocusUp, moveFocusDown, deleteOption, deleteRow, addOption, handleUndo, handleRedo, toggleCollapse, variant, hasFocus, focusChar, setFocus, suggestOption, getFocus, locked, ...props }: {
     values: {
         value: string;
         label: string;
@@ -31,6 +31,7 @@ export declare function ComboboxEditable({ values, searchMessage, selectMessage,
     hasFocus?: boolean;
     focusChar?: number;
     setFocus: (focusChar: number) => void;
+    getFocus: () => void;
     suggestOption: () => void;
     locked: boolean;
 } & React.HTMLAttributes<HTMLButtonElement>): import("react/jsx-runtime").JSX.Element;

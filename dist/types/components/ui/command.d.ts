@@ -13,7 +13,7 @@ declare const Command: React.ForwardRefExoticComponent<Omit<{
 interface CommandDialogProps extends DialogProps {
 }
 declare const CommandDialog: ({ children, ...props }: CommandDialogProps) => import("react/jsx-runtime").JSX.Element;
-declare const CommandInput: React.ForwardRefExoticComponent<Omit<Omit<React.InputHTMLAttributes<HTMLInputElement>, "value" | "type" | "onChange"> & {
+declare const CommandInput: React.ForwardRefExoticComponent<Omit<Omit<React.InputHTMLAttributes<HTMLInputElement>, "type" | "value" | "onChange"> & {
     value?: string | undefined;
     onValueChange?: ((search: string) => void) | undefined;
 } & React.RefAttributes<HTMLInputElement>, "ref"> & React.RefAttributes<HTMLInputElement>>;
@@ -34,7 +34,7 @@ declare const CommandSeparator: React.ForwardRefExoticComponent<Omit<React.HTMLA
 } & React.RefAttributes<HTMLDivElement>, "ref"> & React.RefAttributes<HTMLDivElement>>;
 declare const CommandItem: React.ForwardRefExoticComponent<Omit<{
     children?: React.ReactNode;
-} & Omit<React.HTMLAttributes<HTMLDivElement>, "value" | "disabled" | "onSelect"> & {
+} & Omit<React.HTMLAttributes<HTMLDivElement>, "disabled" | "value" | "onSelect"> & {
     disabled?: boolean | undefined;
     onSelect?: ((value: string) => void) | undefined;
     value?: string | undefined;

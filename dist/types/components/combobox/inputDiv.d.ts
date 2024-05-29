@@ -1,6 +1,6 @@
 import React from 'react';
-interface InputDivProps {
-    value: string | undefined;
+export interface InputDivProps {
+    value: string;
     onChange: (value: string, cursorPos: number) => void;
     onFocus?: (char: number) => void;
     onClick?: (e: React.MouseEvent<HTMLDivElement>) => void;
@@ -12,6 +12,7 @@ interface InputDivProps {
     autoFocus?: boolean;
     placeholder: string;
     focusChar?: number;
+    getFocus: () => void;
 }
 export declare const InputDiv: React.FC<InputDivProps>;
 export default InputDiv;

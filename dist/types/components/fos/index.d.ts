@@ -26,6 +26,7 @@ export type FosReactOptions = Partial<{
         core: string[];
         custom: FosModule[];
     };
+    theme: "light" | "dark" | "system";
 }>;
 export declare const MainView: ({ data, setData, options, }: {
     data: FosContextData | undefined;
@@ -56,6 +57,7 @@ export declare const MainView: ({ data, setData, options, }: {
             core: string[];
             custom: FosModule[];
         };
+        theme: "light" | "dark" | "system";
     }> | undefined;
 }) => import("react/jsx-runtime").JSX.Element;
 export default MainView;

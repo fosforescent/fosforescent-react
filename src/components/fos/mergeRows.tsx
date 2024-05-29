@@ -126,7 +126,6 @@ export const MergeRowsComponent = ({
               <MergeRow
                 node={node}
                 dragItem={item}
-                updateNodes={updateNodes} 
                 dragging={dragging}
                 dragOverInfo={dragOverInfo}
                 locked={locked}

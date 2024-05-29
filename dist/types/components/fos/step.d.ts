@@ -1,9 +1,8 @@
 import { FosContext, FosNode } from '../../fos/temp-types';
 import { FosModule } from './modules/fosModules';
 import { FosReactOptions } from '.';
-export declare const StepRow: ({ node, updateNodes, rowDepth, handleTextEdit, handleChange, addYoungerSibling, moveLeft, moveRight, deleteRow, moveDown, moveUp, deleteOption, addOption, locked, toggleCollapse, dragOverInfo, dragging, dragItem, activeModule, options: fosReactOptions }: {
+export declare const StepRow: ({ node, rowDepth, handleTextEdit, handleChange, addYoungerSibling, moveLeft, moveRight, deleteRow, moveDown, moveUp, deleteOption, addOption, locked, toggleCollapse, dragOverInfo, dragging, dragItem, activeModule, options: fosReactOptions }: {
     node: FosNode;
-    updateNodes: (newNodes: FosContext) => void;
     rowDepth: number;
     handleTextEdit: (value: string, focusChar: number) => void;
     handleChange: (value: string) => void;
@@ -35,9 +34,8 @@ export declare const StepRow: ({ node, updateNodes, rowDepth, handleTextEdit, ha
     activeModule: FosModule | undefined;
     options: FosReactOptions;
 }) => import("react/jsx-runtime").JSX.Element;
-export declare function MenuComponent({ node, hasChildren, context, updateNodes, }: {
+export declare function MenuComponent({ node, hasChildren, context, }: {
     node: FosNode;
     hasChildren: boolean;
     context: FosContext;
-    updateNodes: (nodes: FosContext) => void;
 }): import("react/jsx-runtime").JSX.Element;
