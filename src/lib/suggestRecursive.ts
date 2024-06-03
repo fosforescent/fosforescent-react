@@ -1,4 +1,4 @@
-import { FosContext, FosPath, FosNode, FosTrail, FosRoute, FosNodeData, FosNodeContent} from "@/fos/temp-types"
+import { FosContext, FosPath, FosNode, FosTrail, FosRoute, FosNodeData, FosNodeContent} from "@fosforescent/fosforescent-js"
 
 
 export const suggestRecursive = async <T, S>(
