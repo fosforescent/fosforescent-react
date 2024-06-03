@@ -67,7 +67,16 @@ export const durationDisplay = (time: number) => {
 
 
 
-export const DurationInput = ({ value: time, onUpdate, ...props }: { value: number, onUpdate: (value: number) => void } & Partial<DetailedHTMLProps<HTMLAttributes<HTMLDivElement>, HTMLDivElement>> ) => {
+export const DurationInput = ({ 
+  value: time, 
+  onUpdate, 
+  disabled = false,
+  ...props
+} : { 
+  value: number, 
+  onUpdate: (value: number) => void,
+  disabled?: boolean,  
+} & Partial<DetailedHTMLProps<HTMLAttributes<HTMLDivElement>, HTMLDivElement>> ) => {
 
 
 
@@ -149,6 +158,7 @@ export const DurationInput = ({ value: time, onUpdate, ...props }: { value: numb
                   className="w-full text-lg"
                   value={value}
                   onChange={handleChange}
+                  disabled={disabled}
                 />
               </label>
             </div>

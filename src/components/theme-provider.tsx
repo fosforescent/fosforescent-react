@@ -58,6 +58,8 @@ export function ThemeProvider({
     },
   }
 
+  console.log('themes', defaultTheme, theme, )
+
   return (
     <ThemeProviderContext.Provider {...props} value={value}>
       {children}

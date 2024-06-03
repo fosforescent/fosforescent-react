@@ -1,7 +1,10 @@
 name: Jest Tests
-on: push
+on:
+  pull_request:
+    branches: [ main ]
 jobs:
-  test:
+  test-jest:
+    name: jest-tests
     timeout-minutes: 60
     runs-on: ubuntu-latest
     steps:

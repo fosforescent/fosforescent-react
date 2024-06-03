@@ -10,10 +10,10 @@ import {
   FosContext,
   FosTrail,
   FosNode
- } from '@fosforescent/fosforescent-js'
+} from '@fosforescent/fosforescent-js'
 
- import './global.css'
- import './index.css'
+import './global.css'
+import './index.css'
 
 import { FosReactOptions } from '@/components/fos/index'
 

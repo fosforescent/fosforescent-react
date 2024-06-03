@@ -1,6 +1,5 @@
 import React, { ReactElement, useEffect, useState } from 'react'
 
-
 import { HomeIcon } from '@radix-ui/react-icons'
 import { Button } from "@/components/ui/button"
 import { RootScreenView } from './root'
@@ -37,14 +36,13 @@ import {
   Coordinates
 } from '@dnd-kit/utilities';
 
-import { FosContext, FosNodeContent, FosNodeData, FosContextData, FosPath, FosTrail, FosNode } from "@fosforescent/fosforescent-js";
+import { FosContext, FosNodeContent, FosNodeData, FosContextData, FosPath, FosTrail, FosNode, FosPeer } from "@fosforescent/fosforescent-js";
 import { DroppableContainersMap } from '@dnd-kit/core/dist/store/constructors';
 
 import { StepRow } from './step';
 import { FosModule } from './modules/fosModules'
 import initData from './initialData'
 import { ThemeProvider } from '../theme-provider'
-import { FosPeer } from '@fosforescent/fosforescent-js/dist/types/fosPeer'
 
 
 export type FosReactOptions = Partial<{
@@ -83,16 +81,16 @@ export const MainView = ({
 
   const context = React.useMemo(() => {
  
-    const setDataWrapped = (e: any) => {
+    const setDataWrapped = (e: FosContextData) => {
       console.log("Setting Data", e.focus)
       // console.trace()
       setData(e)
     }
 
-    const dataToUse = data ? data : initData
+    const dataToUse: FosContextData = data ? data : initData
     const newContext = new FosContext(dataToUse)
     const peer = new FosPeer({
-      pushToRemote: async (newData: FosContextData) => setDataWrapped(data),
+      pushToRemote: async (newData: FosContextData) => setDataWrapped(newData),
       pullFromRemote: async () => dataToUse,
       pushCondition: async (peerData: FosContextData) => true,
       pullCondition: async (peerData: FosContextData) => !data,
@@ -380,32 +378,32 @@ export const MainView = ({
 
   return (
     <ThemeProvider defaultTheme={options?.theme || "system"}>
-    <DndContext 
-        sensors={sensors}
-        collisionDetection={customCollisionDetection}
-        onDragStart={handleDragStart}
-        onDragEnd={handleDragEnd}
-        onDragOver={handleDragOver}
-      >
-      <div className='w-full fos-root' > 
-        <div className='flex w-full px-3 items-center overflow-x-scroll no-scrollbar'>
-            {trail.length > 1 && trail.map((item, index) => {
-              
+      <DndContext 
+          sensors={sensors}
+          collisionDetection={customCollisionDetection}
+          onDragStart={handleDragStart}
+          onDragEnd={handleDragEnd}
+          onDragOver={handleDragOver}
+        >
+        <div className='w-full fos-root' > 
+          <div className='flex w-full px-3 items-center overflow-x-scroll no-scrollbar border-1 border-black'>
+              {trail.length > 1 && trail.map((item, index) => {
+                
 
-              const breadcrumbTrail = trail.slice(0, index + 1) as [[string, string], ...[string, string][]]
+                const breadcrumbTrail = trail.slice(0, index + 1) as [[string, string], ...[string, string][]]
 
-              return (<BreadcrumbItem key={index} index={index} breadcrumbTrail={breadcrumbTrail} item={item} trail={trail} context={context} setTrail={setTrail} dragging={activeId} dragOverInfo={dragOverInfo} />)
-            })}
+                return (<BreadcrumbItem key={index} index={index} breadcrumbTrail={breadcrumbTrail} item={item} trail={trail} context={context} setTrail={setTrail} dragging={activeId} dragOverInfo={dragOverInfo} />)
+              })}
+          </div>
+          <div className="w-full">
+            {!node.hasMerge() 
+              ? (<RootScreenView context={context} node={node} dragging={activeId} dragOverInfo={dragOverInfo}  options={options || {}} />) 
+              : (<MergeScreenView context={context} node={node} dragging={activeId} dragOverInfo={dragOverInfo} options={options || {}} />)}
+          </div>
+
         </div>
-        <div className="w-full">
-          {!node.hasMerge() 
-            ? (<RootScreenView context={context} node={node} dragging={activeId} dragOverInfo={dragOverInfo}  options={options || {}} />) 
-            : (<MergeScreenView context={context} node={node} dragging={activeId} dragOverInfo={dragOverInfo} options={options || {}} />)}
-        </div>
 
-      </div>
-
-    </DndContext>
+      </DndContext>
     </ThemeProvider>
   )
 }
