@@ -14,12 +14,12 @@ import { RootScreenHead } from '../root'
 import { FosReactOptions } from '..'
 
 const fosModules = {
-  cost,
+  // cost,
   workflow,
   duration,
-  probability,
-  fosDocument,
-  resources,
+  // probability,
+  // fosDocument,
+  // resources,
 }
 
 const moduleNames = Object.keys(fosModules)

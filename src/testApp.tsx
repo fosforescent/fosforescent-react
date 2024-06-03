@@ -3,15 +3,31 @@ import ReactDOM from 'react-dom/client'
 import Main, { FosContextData } from '.'
 
 
+import './global.css'
+import './index.css'
 const TestApp = () => {
 
 
   const [state, setState] = React.useState<FosContextData | undefined>()
 
-  return (<div>
-    <Main data={state} setData={setState} />
+  return (<div style={{
+    height: "100vh",
+    width: "100vw",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+  }} className="border-3 border-black">
+    <div style={{
+      width: "80%",
+      height: "80%",
+      overflowY: "auto",
+      }} className='border-black border-1'>
+      <Main data={state} setData={setState} options={{
+        theme: "dark"
+      }}/>
     </div>
-  )
+  </div>)
 }
 
 
