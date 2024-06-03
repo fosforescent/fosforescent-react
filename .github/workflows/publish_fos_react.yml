@@ -7,9 +7,7 @@ on:
 jobs:
   build-and-publish:
     runs-on: ubuntu-latest
-    env:
-      DEV_SYC_API_URL: "https://api.dev.syctech.io"
-      PROD_SYC_API_URL: "https://api.syctech.io"
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -22,7 +20,8 @@ jobs:
         with:
           node-version: '20'  # Specify the Node.js version
           registry-url: 'https://registry.npmjs.org/'
-
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Install dependencies
         run:  make setup
@@ -36,10 +35,12 @@ jobs:
         run: echo "//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}" > ~/.npmrc
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_CONFIG_TOKEN: ${{ secrets.NPM_TOKEN }}
 
 
      
 
       - name: Publish to npm
         run: make publish   
-
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
