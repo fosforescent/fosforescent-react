@@ -1,4 +1,4 @@
-import { FosContext, FosPath, FosNode, FosTrail, FosRoute, FosNodeData } from "@/fos/temp-types"
+import { FosContext, FosPath, FosNode, FosTrail, FosRoute, FosNodeData } from "@fosforescent/fosforescent-js"
 
 export const suggestSteps = async (
   promptGPT: (systemPrompt: string, userPrompt: string, options?: { temperature?: number | undefined; }) => Promise<{

@@ -21,7 +21,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { BrainCircuit, PlusIcon, Trash2 } from "lucide-react"
 
-import { FosNode, FosNodeContent, FosContext } from "@/fos/temp-types"
+import { FosNode, FosNodeContent, FosContext } from "@fosforescent/fosforescent-js"
 import { Textarea } from "../ui/textarea"
 import { Button } from "../ui/button"
 

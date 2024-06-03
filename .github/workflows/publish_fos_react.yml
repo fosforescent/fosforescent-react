@@ -1,4 +1,4 @@
-name: Package Viridian React
+name: Publish Fosforesecent React Client
 on: 
   push:
     branches: [ main ]

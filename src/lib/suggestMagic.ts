@@ -1,4 +1,4 @@
-import { FosContext, FosPath, FosNode, FosTrail, FosRoute, FosNodeData, FosNodeContent} from "@/fos/temp-types"
+import { FosContext, FosPath, FosNode, FosTrail, FosRoute, FosNodeData, FosNodeContent} from "@fosforescent/fosforescent-js"
 
 import { suggestOption } from "./suggestOption"
 import { suggestSteps } from "./suggestSteps"

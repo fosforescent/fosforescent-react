@@ -113,7 +113,7 @@ export const InputDiv: React.FC<InputDivProps> = ({
       <div
         ref={divRef}
         contentEditable={!disabled}
-        placeholder={placeholder}
+        data-placeholder={placeholder}
         className={`h-full w-full border-none ${!value ? 'empty' : ''} ${className} ${placeholderClassName}`}
         style={{
           ...moduleStyles,

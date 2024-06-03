@@ -21,7 +21,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { PlusIcon, Trash2 } from "lucide-react"
 
-import { FosNode, FosNodeContent, FosContext } from "@/fos/temp-types"
+import { FosNode, FosNodeContent, FosContext } from "@fosforescent/fosforescent-js"
 
 export function ComboboxOptionsMerge({
   // items,
