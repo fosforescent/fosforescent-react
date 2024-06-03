@@ -2,7 +2,7 @@ import { ComboboxOptions } from "@/components/combobox/comboboxOptions"
 import { Button } from "@/components/ui/button"
 import { PenBox } from "lucide-react"
 
-import { FosNode } from "../../../fos/fosNode"
+import { SelectionPath, FosNode } from "@fosforescent/fosforescent-js"
 import { suggestOption } from "@/lib/suggestOption"
 import { FosModule } from "./fosModules"
 import { FosReactOptions } from ".."

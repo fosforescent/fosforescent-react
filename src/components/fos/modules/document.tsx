@@ -1,6 +1,6 @@
 import { BrainCircuit, Download, FileText } from "lucide-react"
 import { FosModule } from "./fosModules"
-import { FosNode } from "../../../fos/fosNode"
+import { SelectionPath, FosNode } from "@fosforescent/fosforescent-js"
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 import { suggestRecursive } from "@/lib/suggestRecursive"

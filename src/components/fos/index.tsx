@@ -37,13 +37,14 @@ import {
   Coordinates
 } from '@dnd-kit/utilities';
 
-import { FosContext, FosNodeContent, FosNodeData, FosContextData, FosPath, FosTrail, FosNode } from '../../fos/temp-types';
+import { FosContext, FosNodeContent, FosNodeData, FosContextData, FosPath, FosTrail, FosNode } from "@fosforescent/fosforescent-js";
 import { DroppableContainersMap } from '@dnd-kit/core/dist/store/constructors';
 
 import { StepRow } from './step';
 import { FosModule } from './modules/fosModules'
 import initData from './initialData'
 import { ThemeProvider } from '../theme-provider'
+import { FosPeer } from '@fosforescent/fosforescent-js/dist/types/fosPeer'
 
 
 export type FosReactOptions = Partial<{
@@ -89,7 +90,17 @@ export const MainView = ({
     }
 
     const dataToUse = data ? data : initData
-    const newContext = new FosContext(dataToUse, setDataWrapped)
+    const newContext = new FosContext(dataToUse)
+    const peer = new FosPeer({
+      pushToRemote: async (newData: FosContextData) => setDataWrapped(data),
+      pullFromRemote: async () => dataToUse,
+      pushCondition: async (peerData: FosContextData) => true,
+      pullCondition: async (peerData: FosContextData) => !data,
+      data: dataToUse,
+      mergeData: (newData: FosContextData, baseData: FosContextData) => newData
+    })
+    newContext.addPeer(peer)
+
     return newContext
   }, [data, setData])
 

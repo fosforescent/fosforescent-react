@@ -1,11 +1,10 @@
 import { BrainCircuit, DollarSign } from "lucide-react"
 import { FosModule } from "./fosModules"
-import { FosNode } from "../../../fos/fosNode"
 import { Button } from "@/components/ui/button"
 import CurrencyInput from "react-currency-input-field"
 import * as SliderPrimitive from "@radix-ui/react-slider"
 import { cn } from "@/lib/utils"
-import { SelectionPath } from "../../../fos/temp-types"
+import { SelectionPath, FosNode } from "@fosforescent/fosforescent-js"
 import { suggestRecursive } from "@/lib/suggestRecursive"
 import { FosReactOptions } from ".."
 

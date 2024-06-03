@@ -7,7 +7,7 @@ import duration from './duration'
 import probability from './probability'
 import fosDocument from './document'
 import resources from './resources'
-import { FosNode } from '../../../fos/fosNode'
+import { SelectionPath, FosNode } from "@fosforescent/fosforescent-js"
 import { RowsComponent } from '../rows'
 import { StepRow } from '../step'
 import { RootScreenHead } from '../root'

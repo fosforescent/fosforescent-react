@@ -24,7 +24,7 @@ import { Button } from "../ui/button"
 import { CSS } from '@dnd-kit/utilities';
 
 import { RowsComponent } from './rows';
-import { FosContext, FosNodeData, FosPath, FosTrail, FosRoute, FosNode, FosNodeContent } from '../../fos/temp-types'
+import { FosContext, FosNodeData, FosPath, FosTrail, FosRoute, FosNode, FosNodeContent } from "@fosforescent/fosforescent-js"
 
 
 import { useDraggable, useDroppable } from '@dnd-kit/core';

@@ -4,8 +4,7 @@ import React, { useEffect, useRef, useState, DetailedHTMLProps, HTMLAttributes }
 
 
 import { FosModule } from './fosModules';
-import { FosNode } from '../../../fos/fosNode';
-import { FosNodeContent, SelectionPath } from '../../../fos/temp-types';
+import { SelectionPath, FosNode } from "@fosforescent/fosforescent-js"
 import { Button } from '@/components/ui/button';
 import { suggestRecursive } from '@/lib/suggestRecursive';
 import { parse } from 'path';

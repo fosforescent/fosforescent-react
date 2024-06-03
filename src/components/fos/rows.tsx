@@ -1,6 +1,6 @@
 import React from 'react'
 // import { TreeIcon } from '@radix-ui/react-icons'
-import { FosNodeData, FosContext, FosPath, FosContextData, FosTrail, FosNode, FosRoute } from "../../fos/temp-types"
+import { FosNodeData, FosContext, FosPath, FosContextData, FosTrail, FosNode, FosRoute } from "@fosforescent/fosforescent-js"
 // import RowView from './row';
 import { StepRow } from './step';
 import { MergeRow } from './mergeRow';

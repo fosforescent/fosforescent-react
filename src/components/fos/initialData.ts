@@ -1,6 +1,6 @@
 /* eslint-disable camelcase */
 
-import { FosContextData, FosNodesData, FosTrail } from "../../fos/temp-types"
+import { FosContextData, FosNodesData, FosTrail } from "@fosforescent/fosforescent-js"
 
 
 export const defaultTrail: FosTrail = [["root", "root"] as [string, string]]

@@ -1,6 +1,6 @@
 /* eslint camelcase: 0 */
 
-import { FosContextData, FosNodesData, FosTrail } from "@/fos/temp-types";
+import { FosContextData, FosNodesData, FosTrail } from "@fosforescent/fosforescent-js";
 
 
 

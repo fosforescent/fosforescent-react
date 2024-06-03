@@ -3,7 +3,7 @@ import { QuestionMarkCircledIcon, MinusIcon, PlusIcon } from '@radix-ui/react-ic
 import { BrainCircuit } from 'lucide-react'
 
 // import { TreeIcon } from '@radix-ui/react-icons'
-import {  FosContext, FosTrail, FosNode, FosPath } from "../../fos/temp-types"
+import {  FosContext, FosTrail, FosNode, FosPath } from "@fosforescent/fosforescent-js"
 
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';

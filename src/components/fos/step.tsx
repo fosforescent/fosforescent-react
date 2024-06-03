@@ -23,7 +23,7 @@ import { Button } from "../ui/button"
 import { CSS } from '@dnd-kit/utilities';
 
 import { RowsComponent } from './rows';
-import { FosContext, FosNodeData, FosPath, FosTrail, FosRoute, FosNode } from '../../fos/temp-types'
+import { FosContext, FosNodeData, FosPath, FosTrail, FosRoute, FosNode } from "@fosforescent/fosforescent-js"
 
 import { ComboboxEditable } from '../combobox/comboboxEditable'
 
