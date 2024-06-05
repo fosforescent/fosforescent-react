@@ -101,16 +101,14 @@ export const suggestOption = async (
 
 
 
-  const newNodeItems = alternative.steps.map((task: string) => {
-    const newNodeData: FosNodeData = {
-    description: `generated step for ${alternative.description}: ${task}`,
-    selectedOption: 0,
-    collapsed: false,
-    options: [{
-      description: task,
-      data: {},
+  const newNodeItems: FosNodeContent[] = alternative.steps.map((task: string) => {
+    const newNodeData: FosNodeContent = {
+      data: {
+        description: {
+          content: `generated step for ${alternative.description}: ${task}`,
+        }
+      },
       content: []
-    }],
     }
     return newNodeData
   })

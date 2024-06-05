@@ -43,6 +43,7 @@ import { StepRow } from './step';
 import { FosModule } from './modules/fosModules'
 import initData from './initialData'
 import { ThemeProvider } from '../theme-provider'
+import { Trellis } from '@syctech/react-trellis'
 
 
 export type FosReactOptions = Partial<{
@@ -82,7 +83,7 @@ export const MainView = ({
   const context = React.useMemo(() => {
  
     const setDataWrapped = (e: FosContextData) => {
-      console.log("Setting Data", e.focus)
+      console.log("Setting Data", e.focus, data)
       // console.trace()
       setData(e)
     }
@@ -375,6 +376,8 @@ export const MainView = ({
 
   }
 
+  const trellisNode: TrellisNodeInterface = node
+
 
   return (
     <ThemeProvider defaultTheme={options?.theme || "system"}>
@@ -386,23 +389,11 @@ export const MainView = ({
           onDragOver={handleDragOver}
         >
         <div className='w-full fos-root' > 
-          <div className='flex w-full px-3 items-center overflow-x-scroll no-scrollbar border-1 border-black'>
-              {trail.length > 1 && trail.map((item, index) => {
-                
-
-                const breadcrumbTrail = trail.slice(0, index + 1) as [[string, string], ...[string, string][]]
-
-                return (<BreadcrumbItem key={index} index={index} breadcrumbTrail={breadcrumbTrail} item={item} trail={trail} context={context} setTrail={setTrail} dragging={activeId} dragOverInfo={dragOverInfo} />)
-              })}
-          </div>
-          <div className="w-full">
-            {!node.hasMerge() 
-              ? (<RootScreenView context={context} node={node} dragging={activeId} dragOverInfo={dragOverInfo}  options={options || {}} />) 
-              : (<MergeScreenView context={context} node={node} dragging={activeId} dragOverInfo={dragOverInfo} options={options || {}} />)}
-          </div>
-
+          <Trellis
+            rootNode={node}
+          
+          />
         </div>
-
       </DndContext>
     </ThemeProvider>
   )

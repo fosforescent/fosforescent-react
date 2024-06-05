@@ -2,12 +2,12 @@
   "name": "@fosforescent/react-client",
   "version": "0.1.1",
   "scope": "@fosforescent",
-  "main": "./dist/fosforescent-react.umd.cjs",
+  "main": "./dist/fosforescent-react.umd.js",
   "module": "./dist/fosforescent-react.mjs",
   "exports": {
     ".": {
       "import": "./dist/fosforescent-react.mjs",
-      "require": "./dist/fosforescent-react.umd.cjs"
+      "require": "./dist/fosforescent-react.umd.js"
     }
   },
   "types": "./dist/types/index.d.ts",
@@ -31,7 +31,7 @@
     "@dnd-kit/sortable": "^6.0.1",
     "@emotion/react": "^11.9.0",
     "@emotion/styled": "^11.8.1",
-    "@fosforescent/fosforescent-js": "^1.0.2",
+    "@fosforescent/fosforescent-js": "file:../fos-js",
     "@hookform/resolvers": "^2.9.11",
     "@radix-ui/react-checkbox": "^1.0.4",
     "@radix-ui/react-dialog": "^1.0.5",
@@ -45,6 +45,7 @@
     "@radix-ui/react-slot": "^1.0.2",
     "@radix-ui/react-tabs": "^1.0.4",
     "@storybook/addon-a11y": "^7.2.1",
+    "@syctech/react-trellis": "file:../../syc/react-trellis",
     "@temporalio/activity": "^1.6.0",
     "@temporalio/client": "^1.6.0",
     "@temporalio/common": "^1.6.0",
