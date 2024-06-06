@@ -9,8 +9,8 @@ import fosDocument from './document'
 import resources from './resources'
 import { SelectionPath, FosNode } from "@fosforescent/fosforescent-js"
 import { RowsComponent } from '../rows'
-import { StepRow } from '../step'
-import { RootScreenHead } from '../root'
+import { StepRow } from '../rowBody'
+import { RootScreenHead } from '../head'
 import { FosReactOptions } from '..'
 
 const fosModules = {

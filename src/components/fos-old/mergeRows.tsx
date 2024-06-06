@@ -2,15 +2,15 @@
 // import { TreeIcon } from '@radix-ui/react-icons'
 import { FosNodeData, FosContext, FosPath, FosContextData, FosTrail, FosNode, FosRoute } from "@fosforescent/fosforescent-js"
 // import RowView from './row';
-import { StepRow } from './step';
+import { StepRow } from '../fos/rowBody';
 import { MergeRow } from './mergeRow';
 
 import { Button } from '@/components/ui/button';
 import { TrashIcon, PlusCircledIcon, MinusIcon, PlusIcon  } from '@radix-ui/react-icons'
 import { DragOverlay } from '@dnd-kit/core';
 import { useWindowSize } from "../window-size";
-import { FosModule } from "./modules/fosModules";
-import { FosReactOptions } from ".";
+import { FosModule } from "../fos/modules/fosModules";
+import { FosReactOptions } from "../fos";
 
 export const MergeRowsComponent = ({
   parentNode,

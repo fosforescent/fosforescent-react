@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react'
 
 
-
 import {
   Sheet,
   SheetContent,
@@ -13,77 +12,70 @@ import {
 } from "@/components/ui/sheet"
 
 
-import { TrashIcon, PlayIcon, Folder, MinusCircleIcon, ChevronDownCircleIcon, ChevronRightCircleIcon, LucideCheck, XIcon, ChevronLeftCircleIcon } from "lucide-react"
-import { QuestionMarkCircledIcon, ComponentNoneIcon, Crosshair1Icon, DiscIcon, DragHandleDots2Icon, DotsVerticalIcon, PlusCircledIcon, } from "@radix-ui/react-icons"
+import { TrashIcon, PlayIcon, Folder, MinusCircleIcon, ChevronDownCircleIcon, ChevronRightCircleIcon, LucideCheck, XIcon, Merge } from "lucide-react"
 
+
+import { Crosshair1Icon, DiscIcon, DragHandleDots2Icon, DotsVerticalIcon, PlusCircledIcon, QuestionMarkCircledIcon, ComponentNoneIcon } from '@radix-ui/react-icons'
 
 import { Input } from "@/components/ui/input"
+import { Checkbox } from "@/components/ui/checkbox"
 import { Button } from "../ui/button"
 
 import { CSS } from '@dnd-kit/utilities';
 
 import { RowsComponent } from './rows';
-import { FosContext, FosNodeData, FosPath, FosTrail, FosRoute, FosNode } from "@fosforescent/fosforescent-js"
+import { FosContext, FosNodeData, FosPath, FosTrail, FosRoute, FosNode, FosNodeContent } from "@fosforescent/fosforescent-js"
 
-import { ComboboxEditable } from '../combobox/comboboxEditable'
 
 import { useDraggable, useDroppable } from '@dnd-kit/core';
-import _, { update } from 'lodash'
-import { useWindowSize } from '../window-size'
-import { suggestOption } from '@/lib/suggestOption'
-import { FosModule } from './modules/fosModules'
-import { FosReactOptions } from '.'
 
-export const StepRow = ({
+import _, { update } from 'lodash'
+import { diff } from 'deep-object-diff'
+import { useWindowSize } from '../window-size'
+import { ComboboxMerge } from '../combobox/comboboxMerge'
+import { MergeRowsComponent } from './mergeRows'
+import { ArrayChange, Change } from 'diff'
+import { FosReactOptions } from '../fos'
+
+
+export const MergeRow = ({
   node,
   rowDepth,
-  handleTextEdit,
   handleChange,
-  addYoungerSibling,
   moveLeft,
   moveRight,
-  deleteRow,
   moveDown,
   moveUp,
-  deleteOption,
-  addOption,
   locked,
   toggleCollapse,
   dragOverInfo,
   dragging,
   dragItem,
-  activeModule,
-  options: fosReactOptions
+  added,
+  removed,
+  options
 }: {
   node: FosNode,
   rowDepth: number,
-  handleTextEdit: (value: string, focusChar: number) => void,
   handleChange: (value: string) => void,
-  addYoungerSibling: () => void,
   moveLeft: () => void,
   moveRight: () => void,
   moveUp: () => void,
   moveDown: () => void,
-  deleteOption: (index: number) => void,
-  deleteRow: () => void,
-  addOption: () => void,
   toggleCollapse: () => void,
   dragOverInfo: { id: string, position: 'above' | 'below' | 'on', node: FosNode } | null,
   locked: boolean,
   dragging: { id: string, node: FosNode } | null,
-  dragItem: { id: string, data: { node: FosNode } },
-  activeModule: FosModule | undefined,
+  dragItem: { id: string, data: { node: FosNode } }
+  added?: boolean,
+  removed?: boolean,
   options: FosReactOptions
 }) => {
 
 
   const context = node.context
 
-  const options = node.getNodeData().options.map((item, index) => {
-    return ({value: index.toString(), label: item.description})
-  })
-
-
+ 
 
   const nodeOptions = node.getNodeData()
 
@@ -101,8 +93,6 @@ export const StepRow = ({
 
   const nodeId = node.getNodeId()
   const nodeType = node.getNodeType()
-  // const nodeItemId = `${nodeType}-${nodeId}`
-  // const dragItemNodeId = `${dragItem?.data.node.getNodeType()}-${dragItem?.data.node.getNodeId()}`
 
 
   const isDraggingParent = !!(dragging && dragging.node && node.isChildOf(dragging.node))
@@ -129,9 +119,6 @@ export const StepRow = ({
     data: { node }
   });
 
- 
-
-  // console.log('transformstyle', transform)
 
   const dragStyle = {
     transform: CSS.Transform.toString(transform),
@@ -155,7 +142,6 @@ export const StepRow = ({
   const isNotDragging = dragging ? (dragging.id !== nodeItemId) : true
 
   const isDropping = isOver && dragOverInfo && dragOverInfo.id === nodeItemId
-
 
   const dropStyle = (isDropping) ? {
     ...(dragOverInfo.position === 'above' ? {
@@ -181,43 +167,21 @@ export const StepRow = ({
     backgroundColor: 'transparent',
   }
 
-  // const dropStyleComboBox = (isOver && dragOverInfo && dragOverInfo.id === `${nodeType}-${nodeId}`) ? {
-    // ...(dragOverInfo.position === 'above' ? {
-    //   paddingTop: '16px',
-    // } : {}),
-    // ...(dragOverInfo.position === 'below' ? {
-    //   paddingBottom: '16px',
-    // } : {}),
-  //   ...(dragOverInfo.position === 'on' ? {
-  //     transform: 'scale(1.3)',
-  //   } : {}),
-  //   backgroundColor: 'rgba(255, 230, 230, 0.1)',
-  // } : {
-  //   backgroundColor: 'transparent',
-  // }
 
-  // console.log('focus', _.isEqual(context.data.focus.route, node.getRoute()), context, node.getRoute(), context.data.focus.route)
   const hasFocus = _.isEqual(context.data.focus.route, node.getRoute())
   
   const focusChar = context.data.focus.char
 
   const setFocus = (newFocusChar: number) => {
-    console.log('setFocus', newFocusChar)
+    // console.log('setFocus', newFocusChar)
     if (newFocusChar === focusChar){
       return
     }
     context.setFocus(node.getRoute(), newFocusChar)
   }
 
-  // const moveFocusUp = () => {
-  //   context.moveFocusUp()
-  // }
 
-  // const moveFocusDown = () => {
-  //   context.moveFocusDown()    
-  // }
 
-  // console.log('here', node.context.data.focus)
   const moveFocusUp = () => {
     const newContext = node.moveFocusUp()
     // if (newContext){
@@ -232,155 +196,144 @@ export const StepRow = ({
     // }
   }
 
-  
-  const handleUndo = () => {
-    console.log('undo', fosReactOptions?.canUndo)
-    if (fosReactOptions?.canUndo && fosReactOptions?.undo){
-      fosReactOptions?.undo()
-    }
-  }
-
-  const handleRedo = () => {
-    console.log('redo', fosReactOptions?.canRedo)
-    if (fosReactOptions?.canRedo && fosReactOptions?.redo){
-      fosReactOptions?.redo()
-    }
-  }
 
 
-  const handleSuggestOption = async () => {
-    if (fosReactOptions?.canPromptGPT && fosReactOptions?.promptGPT){
-      const [newContext, newSubscriptionData] = await suggestOption(fosReactOptions.promptGPT, node)
-      if (newContext){
-        context.setNodes(newContext.data.nodes)
-      }else{
-        fosReactOptions?.toast && fosReactOptions.toast({
-          title: 'Error',
-          description: 'No suggestions could be generated',
-          duration: 5000,
-        })
-      }
-    } else {
-      console.error('No authedApi')
-      const err =  new Error('No authedApi')
-      err.cause = 'unauthorized'
-      throw err
-    }
-  }
-  
-  const getFocus = () => {
-    console.log('HERE focus')
-    context.setFocus(node.getRoute(), focusChar)
-  }
-
-  // console.log('mergeDiff', mergeDiff, nodeOptions, node.context.data.nodes[nodeOptions.mergeNode!], hasMergeID, hasMerge)
-
-  // console.log('mergeDiff', mergeDiff)
-
-  // const isMaxDepth =  !(rowDepth > 0 && children.length > 0)
 
   const windowSize = useWindowSize()
   const isSmallWindow = windowSize.width && windowSize.width < 500
 
+  const acceptMerge = () => {
+    const newContext = node.acceptMerge()
+    newContext.updateData(newContext.data)
+  }
 
-  const maxRowDepth = windowSize.width ? Math.floor( (windowSize.width - 500 )/ 100) : 0
+  const rejectMerge = () => {
+      const newContext = node.rejectMerge()
+      newContext.updateData(newContext.data)
+    }
 
-  // console.log('hasFocus', hasFocus)
+  const bothMerge = () => {
+    const newContext = node.bothMerge()
+    newContext.updateData(newContext.data)
+  }
+  
 
-  const ModuleRowComponent = activeModule?.RowComponent
+  const optionDescriptions: JSX.Element[] = node.hasMerge() 
+    ? node.getMergeOptions().map((option, i: number) => {
+
+      // console.log('option', option.description)
+      return (<>
+        {option.description.map((segment, index) => (<span
+          className={`${segment.added ? 'bg-emerald-950/90' : segment.removed ? 'text-destructive bg-destructive-950/90' : ''}`}
+          key={index}
+        >
+          {segment.value}
+        </span>))}
+      </>)
+    }, [])
+    : node.getNodeData().options.map((option, i: number) => {
+      return (
+        <span key={i}>{option.description}</span>
+      )
+    })
 
   return (
  
-  <div className={`w-full border-t ${hasFocus ? "bg-white/5" : ''} max-w-svw border-box`}>
+  <div className="w-full">
   <div style={{...dragStyle}} className="flex w-full rounded-sm" ref={setDragNodeRef} {...attributes} {...listeners}  >
-    <div style={{
-      ...dropStyle,
-      width: 'calc(100%)',
-      paddingLeft: `${(maxRowDepth - rowDepth) * 1.5}rem`,
-    }}  
+    <div style={dropStyle}  
       ref={setDropNodeRef} 
-      className={`flex items-center cursor-text `}>
-      {rowDepth > 0 && children.length > 0
-        && (<div className={`right-box `} style={{
-          width: '1.6rem'
-        }}>
+      className={`flex items-center h-16 w-full`}>
 
-        <div className={`pl-1`}>
-          <span 
-            onClick={toggleCollapse}
-            className={`py-3 cursor-pointer`}
-            >
-          {nodeOptions.collapsed ? (<ChevronRightCircleIcon size={'15px'}/>) : (<ChevronDownCircleIcon size={'15px'}/>)}
+      <div className={`flex-none w-25 flex`}>
+
+        <div className={`flex ${!isSmallWindow ? "w-100" : "w-25"} pl-3`}>
+          {rowDepth > 0 && children.length > 0
+            ? (<span 
+                onClick={toggleCollapse}
+                className='px-3 py-3'
+                >
+              {nodeOptions.collapsed ? (<ChevronRightCircleIcon size={'15px'}/>) : (<ChevronDownCircleIcon size={'15px'}/>)}
+              </span>) 
+            : !isSmallWindow ? (<span className='px-3'>&nbsp;&nbsp;&nbsp;&nbsp;</span>) : (<></>)
+          }
+          
+  
+          <span className='px-1'>
+            <MenuComponent 
+              node={node} 
+              hasChildren={children.length > 0}
+              context={context}
+               />
+              
+          </span>
+          <span
+            className="pr-1 py-3"
+            style={{
+              opacity: dragging?.id === `${dragItem?.id}` ? '1' : '0' 
+            }} >
+            <DragHandleDots2Icon />
           </span>
         </div>
-      </div>)}
-      <div className={`left-box`} style={{
-        width: '2rem'
-      }}>
-        <span className='px-1'>
-          <MenuComponent 
-            node={node} 
-            hasChildren={children.length > 0}
-            context={context}
-             />
-            
-        </span> 
       </div>
-
-      <div className="flex flex-initial grow">
-        <div className="flex flex-initial grow">
-          <ComboboxEditable 
+      <div className="flex flex-initial w-full">
+    
+        <div className='flex'style={{
+              width: '60vw',
+            }} >
+          <ComboboxMerge 
             className='w-full bg-transparent'
-            handleTextEdit={handleTextEdit}
+            // handleTextEdit={handleTextEdit}
             handleChange={handleChange}
-            getFocus={getFocus}
-            addYoungerSibling={addYoungerSibling}
+            // addYoungerSibling={addYoungerSibling}
             moveLeft={moveLeft}
             moveRight={moveRight}
-            deleteRow={deleteRow}
-            addOption={addOption}
+            // deleteRow={deleteRow}
+            // addOption={addOption}
             moveFocusDown={moveFocusDown}
             moveFocusUp={moveFocusUp}
             toggleCollapse={toggleCollapse}
-            deleteOption={deleteOption}
-            suggestOption={handleSuggestOption}
+            // deleteOption={deleteOption}
             moveDown={moveDown}
             moveUp={moveUp}
-            handleRedo={handleRedo}
-            handleUndo={handleUndo}
+            added={added}
+            removed={removed}
+            // handleRedo={handleRedo}
+            // handleUndo={handleUndo}
             selectedIndex={selectedIndex}
-            values={options}
-            locked={context.locked || locked}
+            values={optionDescriptions}
+            // locked={true}
             setFocus={setFocus}
-            draggingOver={!!isOver}
-            draggingOn={draggingOn}
+            // draggingOver={!!isOver}
+            // draggingOn={draggingOn}
             isDragging={dragging ? (dragging.id === `${dragItem?.id}`) : false }
             hasFocus={hasFocus}
-            focusChar={focusChar}
+            // focusChar={focusChar}
             variant="text-mimic"
             // defaultValue={selectedNodeDescription}
             defaultValue={selectedIndex.toString()}
             />
+          {<div style={{minWidth: '80px'}} className="flex items-center justify-end">
+            <Button className="bg-amber-200/70 p-1 h-7 " onClick={bothMerge}><Merge  size={"1rem"} /> </Button>
+            <Button className="bg-emerald-700 p-1 h-7" onClick={acceptMerge}><LucideCheck size={"1rem"}/> </Button>
+            <Button variant={"destructive"} className="p-1 h-7" onClick={rejectMerge}><XIcon  size={"1rem"} /> </Button>
+          </div>}
 
         </div>
-        {ModuleRowComponent && <div className={`right-box`}>
-          <ModuleRowComponent node={node} options={fosReactOptions} />
-        </div>}
       </div>
+
     </div>
   </div>
-  <div className={` `}>
+  <div className={`${!isSmallWindow ? "pl-8" : "pl-2" }`}>
     {!nodeOptions.collapsed && rowDepth > 0 && children.length > 0 && (
-      <RowsComponent 
-        rows={children} 
+      <MergeRowsComponent 
         rowDepth={rowDepth - 1} 
         context={context} 
         dragging={dragging}
         dragOverInfo={dragOverInfo}
         parentNode={node}
-        locked={context.locked || locked}
-        activeModule={activeModule}
-        options={fosReactOptions}
+        locked={true}
+        options={options}
         />
     )}
   </div>

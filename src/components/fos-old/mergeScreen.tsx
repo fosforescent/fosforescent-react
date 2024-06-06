@@ -15,8 +15,8 @@ import { suggestSteps } from '@/lib/suggestSteps'
 import { useWindowSize } from '../window-size';
 import { MergeRowsComponent } from './mergeRows';
 import { ComboboxOptionsMerge } from '../combobox/comboboxOptionsMerge';
-import { FosReactOptions } from '.';
-import { FosModule } from './modules/fosModules';
+import { FosReactOptions } from '../fos';
+import { FosModule } from '../fos/modules/fosModules';
 
 
 export function MergeScreenView({
@@ -68,7 +68,7 @@ export function MergeScreenView({
   
   return (<div>
     {node.getRoute().length > 1 && (<div style={{padding: '15px 0px'}}>
-      <RootScreenHead node={node} context={context} options={options} />
+      <MergeScreenHead node={node} context={context} options={options} />
         {/* <AddOption /> */}
     </div>)}
     <div>
@@ -89,7 +89,7 @@ export function MergeScreenView({
 
 
 
-const RootScreenHead = ({  
+export const MergeScreenHead = ({  
   node,
   context,
   options

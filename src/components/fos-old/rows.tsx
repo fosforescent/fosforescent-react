@@ -2,7 +2,7 @@ import React from 'react'
 // import { TreeIcon } from '@radix-ui/react-icons'
 import { FosNodeData, FosContext, FosPath, FosContextData, FosTrail, FosNode, FosRoute } from "@fosforescent/fosforescent-js"
 // import RowView from './row';
-import { StepRow } from './step';
+import { StepRow } from '../fos/rowBody';
 import { MergeRow } from './mergeRow';
 
 import { Button } from '@/components/ui/button';
