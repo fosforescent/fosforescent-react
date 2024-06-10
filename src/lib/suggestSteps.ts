@@ -1,4 +1,4 @@
-import { FosContext, FosPath, FosNode, FosTrail, FosRoute, FosNodeData } from "@fosforescent/fosforescent-js"
+import { FosPath, IFosNode, FosTrail, FosRoute } from "@fosforescent/fosforescent-js"
 
 export const suggestSteps = async (
   promptGPT: (systemPrompt: string, userPrompt: string, options?: { temperature?: number | undefined; }) => Promise<{
@@ -6,7 +6,7 @@ export const suggestSteps = async (
       role: string, content: string
     }, finishReason: string}[]
   }>,
-  node: FosNode,
+  node: IFosNode,
   ) => {
   const trail = node.getRoute()
   const [root, ...trailWithoutRoot] = trail

@@ -1,3 +1,7 @@
+
+import '../../global.css'
+import '../../index.css'
+
 import React, { ReactElement, useEffect, useState } from 'react'
 
 import { HomeIcon } from '@radix-ui/react-icons'
@@ -9,12 +13,15 @@ import {
 
 } from '@dnd-kit/core';
 
-import { FosContext, FosNodeContent,  FosContextData, FosPath, FosTrail,  FosPeer } from "@fosforescent/fosforescent-js";
+import {  FosNodeContent,  FosContextData, FosPath, FosTrail,  IFosNode, FosRootNode } from "@fosforescent/fosforescent-js";
 
 import { FosModule } from './modules/fosModules'
-import initData from './initialData'
+import { defaultContext } from './initialData'
 import { ThemeProvider } from '../theme-provider'
 import { Trellis, TrellisNodeInterface } from '@syctech/react-trellis'
+import { suggestOption } from '@/lib/suggestOption'
+import { suggestSteps } from '@/lib/suggestSteps'
+import { suggestMagic } from '@/lib/suggestMagic'
 
 
 
@@ -34,9 +41,11 @@ export type FosReactOptions = Partial<{
   redo: () => void,
   modules: {
     core: string[],
-    custom: FosModule[]
+    custom: FosModule[],
+    active: FosModule,
   },
   theme: "light" | "dark" | "system",
+  locked: boolean
 }>
 
 
@@ -52,55 +61,25 @@ export const MainView = ({
 }) => {
 
 
-  const dataToUse: FosContextData = data ? data : initData
+  const dataToUse: FosContextData = data ? data : defaultContext  
 
   const rootNode = React.useMemo(() => {
- 
 
-    const newContext = new FosContext(dataToUse)
+    return new FosRootNode(dataToUse, async (newData) => setData(newData))
+  }, [data, setData])
 
-    const rootNode = newContext.getRootNode()
-
-    return rootNode
-  }, [setData])
-
-  const peer = React.useMemo(() => {
-    
-    const setDataWrapped = (e: FosContextData) => {
-      console.log("Setting Data", e.focus, data)
-      // console.trace()
-      setData(e)
-    }
-
-    const newPeer = new FosPeer({
-      pushToRemote: async (newData: FosContextData) => setDataWrapped(newData),
-      pullFromRemote: async () => dataToUse,
-      pushCondition: async (peerData: FosContextData) => true,
-      pullCondition: async (peerData: FosContextData) => !data,
-      data: dataToUse,
-      mergeData: (newData: FosContextData, baseData: FosContextData) => newData
-    })
-    rootNode.addPeer(newPeer)
-
-    return newPeer
-  }, [setData])
-
-  useEffect(() => {
-    rootNode.pushToPeer(peer)
-
-  }, [data])
-
-
+  const global = getGlobal(options || {})
 
   return (
     <div className='w-full fos-root' > 
       <ThemeProvider defaultTheme={options?.theme || "system"}>
         <Trellis
-          rootNode={rootNode}
+          rootNode={rootNode as IFosNode}
           components={{
             head: RootScreenHead,
             rowBody: RowBody,
           }}
+          global={global}
         />
       </ThemeProvider>
     </div>)
@@ -109,5 +88,42 @@ export const MainView = ({
 
 export default MainView
 
+const getPromptActions = (promptGPT: (systemPrompt: string, userPrompt: string, options?: {
+  temperature?: number | undefined;
+}) => Promise<{
+  choices: {
+      message: {
+          role: string;
+          content: string;
+      };
+      finishReason: string;
+  }[];
+}>) => {
+  return {
+    suggestOptions: async (node: IFosNode) => await suggestOption(promptGPT, node),
+    suggestSteps: async (node: IFosNode) => await suggestSteps(promptGPT, node),
+    suggestMagic: async (node: IFosNode) => await suggestSteps(promptGPT, node), 
+  }
+}
 
 
+
+const getGlobal = (options: FosReactOptions) => {
+
+  const global = {
+    ...( options && options?.canPromptGPT && options?.promptGPT ? getPromptActions(options.promptGPT) : {}),
+    ...( options && options?.canRedo ? { canRedo: true } : { canRedo: false }),
+    ...( options && options?.canUndo ? { canUndo: true } : { canUndo: false }),
+    ...( options && options?.canRedo ? { redo: options.redo } : {}),
+    ...( options && options?.canUndo ? { undo: options.undo } : {}),
+    ...( options ? { toast: options.toast } : {}),
+    ...( options ? { theme: options.theme } : {}),
+    ...( options ? { modules: options.modules } : {}),
+    ...( options ? {  } : {}),
+    ...( options ? { locked: options.locked } : { locked: false }),
+  }
+
+  return global
+}
+
+export type FosReactGlobal = ReturnType<typeof getGlobal>

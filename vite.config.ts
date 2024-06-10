@@ -14,12 +14,7 @@ dotenv.config() // load env vars from .env
 
 export default defineConfig(() => {
   return {
-    define: {
-      __LOCAL_SYC_API_URL__: `"${process.env.LOCAL_SYC_API_URL}"`, // wrapping in "" since it's a string
-      __DEV_SYC_API_URL__: `"${process.env.DEV_SYC_API_URL}"`, // wrapping in "" since it's a string
-      __PROD_SYC_API_URL__: `"${process.env.PROD_SYC_API_URL}"`, // wrapping in "" since it's a string
-      __TEST_SYC_API_URL__: `"${process.env.TEST_SYC_API_URL}"`, // wrapping in "" since it's a string
-    },
+
 
     build: {
       copyPublicDir: false,
@@ -45,6 +40,7 @@ export default defineConfig(() => {
         //     fileURLToPath(new URL(file, import.meta.url))
         //   ])
         // ),
+  
         output: {
           // inlineDynamicImports: false,
           // assetFileNames: 'assets/[name][extname]',

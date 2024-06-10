@@ -3,8 +3,6 @@ import ReactDOM from 'react-dom/client'
 import Main, { FosContextData } from '.'
 
 
-import './global.css'
-import './index.css'
 const TestApp = () => {
 
 

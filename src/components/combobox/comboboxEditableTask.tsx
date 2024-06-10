@@ -36,20 +36,29 @@ export function ComboboxEditable({
   draggingOver,
   draggingOn,
   handleChange,
+  addYoungerSibling,
+  moveLeft,
+  moveRight,
+  moveUp,
+  moveDown,
+  moveFocusUp,
+  moveFocusDown,
   deleteOption,
+  deleteRow,
   addOption,
+  handleUndo,
+  handleRedo,
   toggleCollapse,
-  suggestOption,
-  keyDown,
-  keyPresses,
-  locked,
+  variant = "default",
   hasFocus,
   focusChar,
+  setFocus,
+  suggestOption,
   getFocus,
+  locked,
   ...props
 }: {
   values: {value: string, label: string}[],
-  getFocus: () => void,
   emptyMessage?: string,
   selectMessage?: string,
   searchMessage?: string,
@@ -57,17 +66,28 @@ export function ComboboxEditable({
   selectedIndex: number,
   handleTextEdit: (value: string, focusChar: number) => void,
   handleChange: (value: string) => void,
+  addYoungerSibling: () => void,
+  moveLeft: () => void,
+  moveRight: () => void,
+  moveFocusUp: () => void,
+  moveFocusDown: () => void,
+  handleUndo: () => void,
+  handleRedo: () => void,
   isDragging: boolean,
   draggingOver?: boolean,
   draggingOn?: boolean,
+  moveUp: () => void,
+  moveDown: () => void,
+  deleteRow: () => void,
   addOption: () => void,
   deleteOption: (index:number) => void,
   toggleCollapse: () => void,
+  variant?: "default" | "text-mimic",
+  hasFocus?: boolean,
+  focusChar?: number,
+  setFocus: (focusChar: number) => void,
+  getFocus: () => void,
   suggestOption: () => void,
-  keyDown: (e: React.KeyboardEvent<HTMLDivElement>) => void,
-  keyPresses: (e: React.KeyboardEvent<HTMLDivElement>) => void,
-  hasFocus: boolean,
-  focusChar: number,
   locked: boolean,
 } & React.HTMLAttributes<HTMLButtonElement>) {
 
@@ -84,8 +104,22 @@ export function ComboboxEditable({
     }
   }, [selectedIndex])
 
+  const classes = {
+    default: "w-[200px] ",
+    "text-mimic": "w-full  text-left display-flex",
+  }[variant]
 
+  const buttonStyle = {
+    default: {},
+    "text-mimic": {
+      width: '70vw',
+      fontSize: '1rem',
+      fontWeight: 'normal',
+      paddingRight: '5px'
+    }
+  }[variant]
 
+  const textValue = values.find((item) => item.value === value)?.label
 
   const onTextChange = (value: string, cursorPos: number) => {
     if (locked){
@@ -95,7 +129,105 @@ export function ComboboxEditable({
     return false
   }
 
+  const keyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (locked){
+      e.preventDefault()
+      e.stopPropagation()
+      return
+    }
+    if (e.key === " ") {
+      e.stopPropagation();
+    }
+    if (e.key === "ArrowUp" && e.ctrlKey){
+      e.stopPropagation();
+    }
+    if (e.key === "Enter") {
+      console.log('trying to prevent default');
+      e.preventDefault()
+      e.stopPropagation()
+    }
 
+ 
+
+  }
+
+  const keyPresses = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    // console.log('keypress', e.key, value)
+    if (locked){
+      e.preventDefault()
+      e.stopPropagation()
+      return
+    }
+    if (e.key === "Enter") {
+      if (e.altKey){
+        addOption()
+      } else {
+        console.log('addYoungerSibling - comboboxEditable')
+        addYoungerSibling()
+      }
+    }
+
+    if ((e.key === 'z' || e.key === 'Z') && e.ctrlKey) {
+      // console.log('here')
+      if (e.shiftKey) {
+          e.preventDefault()
+          handleRedo()
+          e.stopPropagation()
+      } else {
+          e.preventDefault()
+          handleUndo()
+          e.stopPropagation()
+      }
+    }
+
+    if (e.key === "ArrowUp") {
+      if (e.altKey && e.ctrlKey){
+        console.log('test', value, values.length, (parseInt(value || "0") - 1 + values.length) % values.length);
+        handleChange( value ? ( (parseInt(value) - 1 + values.length) % values.length ).toString() : "0" )
+      }else if (!e.ctrlKey && !e.shiftKey && !e.metaKey && !e.altKey){
+
+        moveFocusUp()
+        e.preventDefault()
+        e.stopPropagation()
+        return 
+      }
+
+    }
+
+    
+    if (e.key === "ArrowDown") {
+      if (e.altKey && e.ctrlKey){
+        handleChange( value ? ( (parseInt(value) + 1) % values.length ).toString() : "0" )
+      }else if (!e.ctrlKey && !e.shiftKey && !e.metaKey && !e.altKey){
+        e.preventDefault()
+        e.stopPropagation()
+        moveFocusDown()
+        return 
+      }
+    }
+
+    if (e.key === "ArrowRight"){
+      if (e.altKey && e.ctrlKey){
+        moveRight()
+      }
+    }
+
+    if (e.key === "ArrowLeft"){
+      if (e.altKey && e.ctrlKey){
+        moveLeft()
+      }
+    }
+
+    if (e.key === " " && e.ctrlKey){
+      toggleCollapse()
+    }
+    
+    if (e.key === "Backspace" && !textValue){
+      console.log('deleteRow - comboboxEditable', textValue)
+      deleteRow()
+    }
+
+  }
 
   const handleDeleteOption = (index: number) => {
     if (locked){
@@ -142,9 +274,9 @@ export function ComboboxEditable({
           <InputDiv
           disabled={locked}
           autoFocus={hasFocus}
-          getFocus={getFocus}
           placeholder={values.length > 1 ? "New Option" : "Enter a task to plan"}
           className="rounded-r-none w-full cursor-text"
+          getFocus={getFocus}
           value={value
             ? values.find((item) => item.value === value)?.label || ""
             : selectMessage} 

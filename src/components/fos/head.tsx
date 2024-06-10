@@ -2,8 +2,6 @@ import React, { ReactElement, useEffect, useState } from 'react'
 import { QuestionMarkCircledIcon, MinusIcon, PlusIcon } from '@radix-ui/react-icons'
 import { Apple, BrainCircuit, CircleEllipsis, DollarSign, Timer, Hammer, Dices, PenBox, ScrollText, FileText, Boxes } from 'lucide-react'
 
-// import { TreeIcon } from '@radix-ui/react-icons'
-import {  FosContext, FosTrail, FosNode, FosPath, FosNodeContent } from "@fosforescent/fosforescent-js"
 
 import { Button } from '../ui/button';
 

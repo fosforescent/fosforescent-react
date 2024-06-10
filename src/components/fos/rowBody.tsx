@@ -1,8 +1,6 @@
 import React, { useEffect, useState } from 'react'
 
 
-import { FosContext, FosNodeData, FosPath, FosTrail, FosRoute, FosNode } from "@fosforescent/fosforescent-js"
-
 import { ComboboxEditable } from '../combobox/comboboxEditable'
 
 import _  from 'lodash'
@@ -11,9 +9,11 @@ import { suggestOption } from '@/lib/suggestOption'
 import { FosModule } from './modules/fosModules'
 
 import { TrellisRowBodyComponentProps } from "@syctech/react-trellis"
+import { IFosNode } from '@fosforescent/fosforescent-js'
+import { FosReactGlobal } from '.'
 
 export const RowBody = ({
-  node,
+  node, 
   // rowDepth,
   // handleTextEdit,
   // handleChange,
@@ -32,118 +32,83 @@ export const RowBody = ({
   // dragItem,
   // activeModule,
   // options: fosReactOptions
-}: TrellisRowBodyComponentProps) => {
-
-
-  const context = node.context
-
-  const options = node.getNodeData().options.map((item, index) => {
-    return ({value: index.toString(), label: item.description})
-  })
+  global, 
+  meta
+  
+}: TrellisRowBodyComponentProps<IFosNode, FosReactGlobal>) => {
 
 
 
-  const nodeOptions = node.getNodeData()
+  const getDescription = (node: IFosNode) => {
+    const data = node.getData()
+    return data.description?.content || ""
+  }
+
+
+  
+  const getOptions = (node: IFosNode) => {
+    if (node.getNodeType() === 'option'){
+      return node.getChildren().map((child, index) => {
+        return ({value: index.toString(), label: getDescription(child)})
+      })
+    }else if (node.getNodeType() === 'task'){
+      return [{value: '0', label: getDescription(node)}]
+    }else{
+      throw new Error('getoptions must be used on a task or option node')
+    }
+  }
+
+
+
+
+
+  const options = getOptions(node)
+
+
+
 
   // console.log('step', node.getNodeId(), nodeOptions)
 
-  const selectedIndex = nodeOptions.selectedOption;
+  const selectedIndex = node.getData().option?.selectedIndex || 0
 
   if(selectedIndex === undefined) {
-    console.log('selectedOption', nodeOptions)
-  }
-
-
- 
-
- 
-  const hasFocus = _.isEqual(context.data.focus.route, node.getRoute())
-  
-  const focusChar = context.data.focus.char
-
-  const setFocus = (newFocusChar: number) => {
-    console.log('setFocus', newFocusChar)
-    if (newFocusChar === focusChar){
-      return
-    }
-    context.setFocus(node.getRoute(), newFocusChar)
-  }
-
-  // const moveFocusUp = () => {
-  //   context.moveFocusUp()
-  // }
-
-  // const moveFocusDown = () => {
-  //   context.moveFocusDown()    
-  // }
-
-  // console.log('here', node.context.data.focus)
-  const moveFocusUp = () => {
-    const newContext = node.moveFocusUp()
-    // if (newContext){
-    //   updateNodes(newContext)
-    // }
-  }
-
-  const moveFocusDown = () => {
-    const newContext = node.moveFocusDown()
-    // if (newContext){
-    //   updateNodes(newContext)
-    // }
+    console.log('selectedOption', options)
   }
 
   
   const handleUndo = () => {
-    console.log('undo', fosReactOptions?.canUndo)
-    if (fosReactOptions?.canUndo && fosReactOptions?.undo){
-      fosReactOptions?.undo()
-    }
+    global.undo && global.canUndo && global.undo()
   }
 
   const handleRedo = () => {
-    console.log('redo', fosReactOptions?.canRedo)
-    if (fosReactOptions?.canRedo && fosReactOptions?.redo){
-      fosReactOptions?.redo()
-    }
+    global.redo && global.canRedo && global.redo()
   }
 
 
   const handleSuggestOption = async () => {
-    if (fosReactOptions?.canPromptGPT && fosReactOptions?.promptGPT){
-      const [newContext, newSubscriptionData] = await suggestOption(fosReactOptions.promptGPT, node)
-      if (newContext){
-        context.setNodes(newContext.data.nodes)
-      }else{
-        fosReactOptions?.toast && fosReactOptions.toast({
-          title: 'Error',
-          description: 'No suggestions could be generated',
-          duration: 5000,
-        })
-      }
-    } else {
-      console.error('No authedApi')
-      const err =  new Error('No authedApi')
-      err.cause = 'unauthorized'
-      throw err
-    }
+    global.suggestOptions && await global.suggestOptions(node)
   }
   
-  const getFocus = () => {
-    console.log('HERE focus')
-    context.setFocus(node.getRoute(), focusChar)
+  const locked = false
+
+  const ModuleRowComponent = global.modules?.active?.RowComponent || (() => <></>)
+
+  const handleTextEdit = (value: string) => {
+    node.setData({description: {content: value}})
   }
 
-  // console.log('mergeDiff', mergeDiff, nodeOptions, node.context.data.nodes[nodeOptions.mergeNode!], hasMergeID, hasMerge)
+  const handleChange = (value: string) => {
+    node.setData({option: {selectedIndex: parseInt(value)}})
+  }
 
-  // console.log('mergeDiff', mergeDiff)
+  const handleKeyPresses = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    meta.keyPresses(e)
+  }
+  
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    meta.keyDowns(e)
+  }
 
-  // const isMaxDepth =  !(rowDepth > 0 && children.length > 0)
-
-  const windowSize = useWindowSize()
-
-  // console.log('hasFocus', hasFocus)
-
-  const ModuleRowComponent = activeModule?.RowComponent
 
   return (
       <div>
@@ -152,36 +117,25 @@ export const RowBody = ({
             className='w-full bg-transparent'
             handleTextEdit={handleTextEdit}
             handleChange={handleChange}
-            getFocus={getFocus}
-            addYoungerSibling={addYoungerSibling}
-            moveLeft={moveLeft}
-            moveRight={moveRight}
-            deleteRow={deleteRow}
-            addOption={addOption}
-            moveFocusDown={moveFocusDown}
-            moveFocusUp={moveFocusUp}
-            toggleCollapse={toggleCollapse}
-            deleteOption={deleteOption}
             suggestOption={handleSuggestOption}
-            moveDown={moveDown}
-            moveUp={moveUp}
-            handleRedo={handleRedo}
-            handleUndo={handleUndo}
+            getFocus={meta.getFocus}
+            hasFocus={meta.hasFocus}
+            focusChar={meta.focusChar}
+            isDragging={meta.isDragging}
+            draggingOver={meta.draggingOver}
+            draggingOn={meta.draggingOn}
+            keyDown={handleKeyDown}
+            keyPresses={handleKeyPresses}
             selectedIndex={selectedIndex}
             values={options}
-            locked={context.locked || locked}
-            setFocus={setFocus}
-            isDragging={dragging ? (dragging.id === `${dragItem?.id}`) : false }
-            hasFocus={hasFocus}
-            focusChar={focusChar}
-            variant="text-mimic"
+            locked={global.locked || false }
             // defaultValue={selectedNodeDescription}
             defaultValue={selectedIndex.toString()}
             />
 
         </div>
         {ModuleRowComponent && <div className={`right-box`}>
-          <ModuleRowComponent node={node} options={fosReactOptions} />
+          <ModuleRowComponent node={node} options={global} />
         </div>}
       </div>)
 

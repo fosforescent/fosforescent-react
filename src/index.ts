@@ -2,18 +2,14 @@
 
 import { 
   FosContextData, 
-  FosNodeData, 
   FosNodesData, 
   FosRoute,
   FosNodeContent,
   FosPath,
-  FosContext,
   FosTrail,
-  FosNode
+  IFosNode
 } from '@fosforescent/fosforescent-js'
 
-import './global.css'
-import './index.css'
 
 import { FosReactOptions } from '@/components/fos/index'
 
@@ -26,12 +22,7 @@ export type {
   FosRoute,
   FosNodesData,
   FosNodeContent,
-  FosNodeData,
   FosPath,
   FosTrail,
-}
-
-export {
-  FosContext,
-  FosNode
+  IFosNode
 }

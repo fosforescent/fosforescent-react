@@ -1,4 +1,4 @@
-import { FosContext, FosPath, FosNode, FosTrail, FosRoute, FosNodeData, FosNodeContent} from "@fosforescent/fosforescent-js"
+import { FosPath, FosTrail, FosRoute, IFosNode, FosNodeContent} from "@fosforescent/fosforescent-js"
 
 import { suggestOption } from "./suggestOption"
 import { suggestSteps } from "./suggestSteps"
@@ -14,7 +14,7 @@ export const suggestMagic = async (
       role: string, content: string
     }, finishReason: string}[]
   }>,
-  node: FosNode,
+  node: IFosNode,
   ) => {
   const trail = node.getRoute()
   const [root, ...trailWithoutRoot] = trail
@@ -28,7 +28,7 @@ export const suggestMagic = async (
     return thisNodeOptionContent.description
   })
 
-  const getChildTimes = async (node: FosNode, index: number, parentDescriptions: string[], options?: { temperature?: number | undefined; }): Promise<FosContext> => {
+  const getChildTimes = async (node: IFosNode, index: number, parentDescriptions: string[], options?: { temperature?: number | undefined; }): Promise<FosContext> => {
     const nodeContent = node.getOptionContent(index)
     const children = node.getChildren(index)
 

@@ -65,8 +65,8 @@ export function ComboboxOptions({
 
   const nodeType = node.getNodeType()
 
-  if (nodeType !== "option") {
-    throw new Error("combobox options must be used on a option node")
+  if (nodeType !== "task") {
+    throw new Error("combobox task must be used on a task node")
   }
 
 

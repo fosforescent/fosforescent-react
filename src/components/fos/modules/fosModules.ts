@@ -7,11 +7,8 @@ import duration from './duration'
 import probability from './probability'
 import fosDocument from './document'
 import resources from './resources'
-import { SelectionPath, FosNode } from "@fosforescent/fosforescent-js"
-import { RowsComponent } from '../rows'
-import { StepRow } from '../rowBody'
-import { RootScreenHead } from '../head'
 import { FosReactOptions } from '..'
+import { IFosNode } from '@fosforescent/fosforescent-js'
 
 const fosModules = {
   // cost,
@@ -25,7 +22,7 @@ const fosModules = {
 const moduleNames = Object.keys(fosModules)
 
 type ModuleProps = {
-  node: FosNode
+  node: IFosNode
   options: FosReactOptions
 }
 

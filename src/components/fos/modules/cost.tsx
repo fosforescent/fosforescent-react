@@ -4,14 +4,14 @@ import { Button } from "@/components/ui/button"
 import CurrencyInput from "react-currency-input-field"
 import * as SliderPrimitive from "@radix-ui/react-slider"
 import { cn } from "@/lib/utils"
-import { SelectionPath, FosNode } from "@fosforescent/fosforescent-js"
+import { SelectionPath, IFosNode } from "@fosforescent/fosforescent-js"
 import { suggestRecursive } from "@/lib/suggestRecursive"
 import { FosReactOptions } from ".."
 
 
 
 
-const ResourceComponent = ({ node, options }: { node: FosNode, options: FosReactOptions }) => {
+const ResourceComponent = ({ node, options }: { node: IFosNode, options: FosReactOptions }) => {
 
 
 
@@ -21,14 +21,14 @@ const ResourceComponent = ({ node, options }: { node: FosNode, options: FosReact
   
 
   const systemPromptBase = `Take a deep breath.  Please respond only with a single valid JSON object with the key "cost" and a number value`
-  const getUserPromptBase = (thisDescription: string, parentDescriptions: string[], node: FosNode) => `How much does it cost to ${thisDescription} in the as a subtask of ${parentDescriptions.join(' subtask of the task ')}`
+  const getUserPromptBase = (thisDescription: string, parentDescriptions: string[], node: IFosNode) => `How much does it cost to ${thisDescription} in the as a subtask of ${parentDescriptions.join(' subtask of the task ')}`
   const systemPromptRecursive = `Take a deep breath.  Please respond only with a single valid JSON object with the key "cost" and a number value`
-  const getUserPromptRecursive = (thisDescription: string, parentDescriptions: string[], node: FosNode) => {
+  const getUserPromptRecursive = (thisDescription: string, parentDescriptions: string[], node: IFosNode) => {
     const resourceInfo = getCostInfo(node)
     return `How much does it cost to ${thisDescription} in the as a subtask of ${parentDescriptions.join(' subtask of the task ')}, but factoring out the cost of its subtasks, which are estimated to cost somewhere between $${resourceInfo.min} and $${resourceInfo.max}, averaging $${resourceInfo.average}.  This will leave only the marginal cost, which is the information we want.`
   }
   const pattern = /.*(\{[^{}]*\}).*/m
-  const parsePattern = (result: any, node: FosNode): CostData => {
+  const parsePattern = (result: any, node: IFosNode): CostData => {
 
     const resultParsed = result as { cost: string }
 
@@ -108,7 +108,7 @@ const ResourceComponent = ({ node, options }: { node: FosNode, options: FosReact
 
 
 
-export const setCostInfo = (node:FosNode, { marginal, budget} : { marginal: number, budget?: { available: number } }) => {
+export const setCostInfo = (node:IFosNode, { marginal, budget} : { marginal: number, budget?: { available: number } }) => {
   const nodeData = node.getData()
   const newNodeData = {
     ...nodeData,
@@ -120,7 +120,7 @@ export const setCostInfo = (node:FosNode, { marginal, budget} : { marginal: numb
   return node.setData(newNodeData)
 }
 
-export const getCostInfo = (thisNode: FosNode, index?: number): CostInfo => {
+export const getCostInfo = (thisNode: IFosNode, index?: number): CostInfo => {
   const indexToGet = thisNode.parseIndex(index)
   // get selected option
 
@@ -212,7 +212,7 @@ export const getCostInfo = (thisNode: FosNode, index?: number): CostInfo => {
 
 }
 
-const checkCostInfo = (node: FosNode): boolean => {
+const checkCostInfo = (node: IFosNode): boolean => {
   const nodeData = node.getData()
   return !!nodeData.cost
 }
