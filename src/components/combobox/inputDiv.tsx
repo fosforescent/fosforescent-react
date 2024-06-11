@@ -15,8 +15,8 @@ export interface InputDivProps {
   disabled?: boolean;
   autoFocus?: boolean;
   placeholder: string;
-  focusChar?: number;
-  getFocus: () => void;
+  focusChar?: number | null;
+  getFocus: (char: number | null) => void;
 }
 
 export const InputDiv: React.FC<InputDivProps> = ({
@@ -85,7 +85,7 @@ export const InputDiv: React.FC<InputDivProps> = ({
     if (!divRef.current) {
       return;
     }
-    getFocus();
+    // getFocus(null);
     updateInput();
   }
 

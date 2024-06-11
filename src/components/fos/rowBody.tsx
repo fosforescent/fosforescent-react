@@ -35,7 +35,7 @@ export const RowBody = ({
   global, 
   meta
   
-}: TrellisRowBodyComponentProps<IFosNode, FosReactGlobal>) => {
+}: TrellisRowBodyComponentProps<IFosNode, FosReactGlobal | undefined>) => {
 
 
 
@@ -59,20 +59,31 @@ export const RowBody = ({
   }
 
 
-
+  if (!global){
+    throw new Error('global not defined')
+  }
 
 
   const options = getOptions(node)
 
 
-
-
   // console.log('step', node.getNodeId(), nodeOptions)
 
   const selectedIndex = node.getData().option?.selectedIndex || 0
+  const locked = false
+
+
+  const ModuleRowComponent = global?.activeModule?.RowComponent || (() => <></>)
+
+  const children = node.getChildren()
+
 
   if(selectedIndex === undefined) {
     console.log('selectedOption', options)
+  }
+
+  const suggestOptions = async (node: IFosNode) => {
+    global?.promptGPT && suggestOption(global.promptGPT, node)
   }
 
   
@@ -86,13 +97,10 @@ export const RowBody = ({
 
 
   const handleSuggestOption = async () => {
-    global.suggestOptions && await global.suggestOptions(node)
+    suggestOptions(node)
   }
   
-  const locked = false
-
-  const ModuleRowComponent = global.modules?.active?.RowComponent || (() => <></>)
-
+  
   const handleTextEdit = (value: string) => {
     node.setData({description: {content: value}})
   }
@@ -102,11 +110,32 @@ export const RowBody = ({
   }
 
   const handleKeyPresses = (e: React.KeyboardEvent<HTMLDivElement>) => {
-    meta.keyPresses(e)
+    meta.keyPressEvents(e)
+
+
+
+    if (e.altKey && e.ctrlKey){
+      console.log('test', selectedIndex, node.getChildren().length );
+      handleChange( selectedIndex ? ( (selectedIndex - 1 + (children.length)) % children.length ).toString() : "0" )
+    }
   }
   
   const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
-    meta.keyDowns(e)
+    meta.keyDownEvents(e)
+  }
+
+  const handleAddOption = () => {
+    // console.log('addOption')
+    // addOption()
+  }
+
+  const handleDeleteOption = (index: number) => {
+    // console.log('deleteOption', index)
+    // deleteOption(index)
+  }
+
+  const handleToggleCollapse = () => {
+    meta.toggleCollapse()
   }
 
 
@@ -118,12 +147,11 @@ export const RowBody = ({
             handleTextEdit={handleTextEdit}
             handleChange={handleChange}
             suggestOption={handleSuggestOption}
-            getFocus={meta.getFocus}
-            hasFocus={meta.hasFocus}
-            focusChar={meta.focusChar}
-            isDragging={meta.isDragging}
-            draggingOver={meta.draggingOver}
-            draggingOn={meta.draggingOn}
+            getFocus={meta.acquireFocus}
+            hasFocus={!!meta.isFocused}
+            focusChar={meta.focus?.focusChar}
+            isDragging={meta.dragging}
+            draggingOver={meta.isBeingDraggedOver}
             keyDown={handleKeyDown}
             keyPresses={handleKeyPresses}
             selectedIndex={selectedIndex}
@@ -131,6 +159,9 @@ export const RowBody = ({
             locked={global.locked || false }
             // defaultValue={selectedNodeDescription}
             defaultValue={selectedIndex.toString()}
+            addOption={handleAddOption}
+            deleteOption={handleDeleteOption}
+            toggleCollapse={handleToggleCollapse}
             />
 
         </div>

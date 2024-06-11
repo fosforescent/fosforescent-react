@@ -39,11 +39,9 @@ export type FosReactOptions = Partial<{
   undo: () => void,
   canRedo: boolean,
   redo: () => void,
-  modules: {
-    core: string[],
-    custom: FosModule[],
-    active: FosModule,
-  },
+  activeModule: FosModule,
+  setActiveModule: (module: FosModule | undefined) => void,
+  modules: FosModule[],
   theme: "light" | "dark" | "system",
   locked: boolean
 }>
@@ -108,7 +106,7 @@ const getPromptActions = (promptGPT: (systemPrompt: string, userPrompt: string, 
 
 
 
-const getGlobal = (options: FosReactOptions) => {
+const getGlobal = (options: FosReactOptions): Partial<FosReactOptions> => {
 
   const global = {
     ...( options && options?.canPromptGPT && options?.promptGPT ? getPromptActions(options.promptGPT) : {}),
@@ -118,7 +116,8 @@ const getGlobal = (options: FosReactOptions) => {
     ...( options && options?.canUndo ? { undo: options.undo } : {}),
     ...( options ? { toast: options.toast } : {}),
     ...( options ? { theme: options.theme } : {}),
-    ...( options ? { modules: options.modules } : {}),
+    ...( options ? { activeModule: options.activeModule } : {}),
+    ...( options ? { setActiveModule: options.setActiveModule } : {}),
     ...( options ? {  } : {}),
     ...( options ? { locked: options.locked } : { locked: false }),
   }

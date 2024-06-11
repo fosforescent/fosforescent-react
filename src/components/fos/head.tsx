@@ -11,16 +11,15 @@ import { FosReactOptions } from '.';
 
 
 
-import { TrellisHeadComponentProps } from "@syctech/react-trellis"
+import { TrellisComponents, TrellisHeadComponentProps } from "@syctech/react-trellis"
+import { IFosNode } from '@fosforescent/fosforescent-js';
 
-export const RootScreenHead = ({  
+export const RootScreenHead: TrellisComponents<IFosNode, FosReactOptions | undefined>["head"] = ({  
   node,
-  context,
-  activeModule,
-  setActiveModule,
-  availableModules,
-  options: fosReactOptions
-}: TrellisHeadComponentProps) => {
+  global,
+  meta,
+  ...props
+}) => {
 
 
   /**
@@ -33,14 +32,22 @@ export const RootScreenHead = ({
   const [showAllActions, setShowAllActions] = React.useState(false)
 
 
+  if (!global){
+    throw new Error('global is undefined')
+  }
 
-  // console.log('canSuggest', canSuggest, appState.info.subscription?.apiCallsAvailable, appState.info.subscription?.apiCallsUsed, appState.info.subscription, appState.info, appState)
 
+  const activeModule = global.activeModule
 
+  const setActiveModule = (module: FosModule | undefined) => {
+    global?.setActiveModule && global.setActiveModule(module)
+  }
+
+  const availableModules = global?.modules
 
   const handleAllActionsButtonClick = () => {
     if (showAllActions) {
-      if (activeModule !== undefined){
+      if (global?.activeModule !== undefined){
         setActiveModule(undefined)
       } else {
         setShowAllActions(false)  
@@ -65,13 +72,13 @@ export const RootScreenHead = ({
       <div>
         <div className={`flex-row flex w-full px-1 `}>
           <div className={`px-0 flex-grow overflow-x-hidden transition-all duration-500 ${showAllActions ? 'w-none' : ''}`}>
-            <HeadComponent node={node} options={fosReactOptions} />
+            <HeadComponent node={node} options={global} />
           </div>
           <div className={`px-3 flex flex-row w-auto transition-all duration-500 items-stretch`}>
   
             {showAllActions && (
 
-              (availableModules).map((module: FosModule, index: number) => {
+              (availableModules || []).map((module: FosModule, index: number) => {
                 return <Button key={index} onClick={() => handleModuleClick(module)} variant='ghost' className={`h-full ${activeModule?.name === module.name ? 'bg-stone-900' : 'bg-stone-700'}`}>{module.icon}</Button>
               })
             )}

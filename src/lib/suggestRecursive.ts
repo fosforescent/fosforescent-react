@@ -1,4 +1,4 @@
-import { FosContext, FosPath, FosNode, FosTrail, FosRoute, FosNodeData, FosNodeContent} from "@fosforescent/fosforescent-js"
+import { FosPath, IFosNode, FosTrail, FosRoute,  FosNodeContent} from "@fosforescent/fosforescent-js"
 
 
 export const suggestRecursive = async <T, S>(
@@ -7,7 +7,7 @@ export const suggestRecursive = async <T, S>(
         role: string, content: string
       }, finishReason: string}[]
     }>,
-    node: FosNode,
+    node: IFosNode,
     {
       pattern, 
       parsePattern,
@@ -20,33 +20,46 @@ export const suggestRecursive = async <T, S>(
       checkResourceInfo
     } : {
       pattern: RegExp,
-      parsePattern: (response: string, node: FosNode) => S,
+      parsePattern: (response: string, node: IFosNode) => S,
       systemPromptBase: string,
-      getUserPromptBase: (nodeDescription: string, parentDescriptions: string[], node: FosNode) => string,
+      getUserPromptBase: (nodeDescription: string, parentDescriptions: string[], node: IFosNode) => string,
       systemPromptRecursive: string,
-      getUserPromptRecursive: (nodeDescription: string, parentDescriptions: string[], node: FosNode) => string,
-      getResourceInfo: (node: FosNode) => T,
-      setResourceInfo: (node: FosNode, resourceInfo: S) => FosContext,
-      checkResourceInfo: (node: FosNode) => boolean
+      getUserPromptRecursive: (nodeDescription: string, parentDescriptions: string[], node: IFosNode) => string,
+      getResourceInfo: (node: IFosNode) => T,
+      setResourceInfo: (node: IFosNode, resourceInfo: S) => void,
+      checkResourceInfo: (node: IFosNode) => boolean
     }
   ) => {
   const trail = node.getRoute()
   const [root, ...trailWithoutRoot] = trail
 
-  console.log('starting to suggest', node.getRoute(), node.context)
+  console.log('starting to suggest', node.getRoute())
 
-  const descriptions = trailWithoutRoot.map((edge: [string, string], index: number) => {
-    const route: FosRoute = [root, ...trailWithoutRoot.slice(0, index + 1)]
-    const thisNode = node.context.getNode(route)
-    const thisNodeOptionContent = thisNode.getOptionContent()
-    return thisNodeOptionContent.description
+  const nodeType = node.getNodeType()
+
+  if (nodeType !== 'task'){
+    throw new Error('node must be a task')
+  }
+
+  
+  const past = node.getAncestors().reverse().map(([node, number], index) => {
+    return node
   })
 
-  const getChildTimes = async (node: FosNode, index: number, parentDescriptions: string[]): Promise<FosContext> => {
-    const nodeContent = node.getOptionContent(index)
-    const children = node.getChildren(index)
+  const descriptions: string[] = past.map((node, index: number) => {
+    const data = node.getData();
+    const result: string = data.description?.content || ""
+    return result
+  })
 
-    console.log('getChildTimes', node.getRoute(), node.getData(), node.context)
+
+  const getChildTimes = async (node: IFosNode, index: number, parentDescriptions: string[]): Promise<void> => {
+    const nodeData = node.getData()
+
+
+    const children = node.getChildren()
+
+    console.log('getChildTimes', node.getRoute(), node.getData(), node)
 
     if (children.length === 0) {
 
@@ -56,12 +69,10 @@ export const suggestRecursive = async <T, S>(
       console.log('resourceInfo', resourceInfo)
 
       if (!resourceInfo){
-  
-        let thisContext: FosContext = node.context;
 
 
         const systemPrompt = systemPromptBase
-        const userPrompt = getUserPromptBase(nodeContent.description, parentDescriptions, node)
+        const userPrompt = getUserPromptBase(nodeData.description?.content || "", parentDescriptions, node)
 
         console.log('systemPrompt', systemPrompt, userPrompt)
         if (!systemPrompt || !userPrompt) throw new Error('missing prompt');
@@ -83,40 +94,40 @@ export const suggestRecursive = async <T, S>(
 
         const resultParsed = results[0]
 
-        const updatedNode = thisContext.getNode(node.getRoute())
+        setResourceInfo(node, parsePattern(resultParsed, node))
 
-        thisContext = setResourceInfo(updatedNode, parsePattern(resultParsed, updatedNode))
-
-        return thisContext
+        return
       } else {
-        return node.context
+        return
       }
 
     } else {
 
-        let thisContext: FosContext = node.context;
   
         for (const child of children) {
 
-          const itemNodeData = child.getNodeData()
-          const itemOptions = itemNodeData.options
+          const itemNodeData = child.getData()
+          
+          const children = child.getChildren()
+
           let j = 0;
-          for (const option of itemOptions) {
-            const childOfNewContext = thisContext.getNode(child.getRoute())
-            thisContext = await getChildTimes(childOfNewContext, j++, [...parentDescriptions, option.description])
+          for (const option of children) {
+            const childDescription = option.getData().description?.content || ""
+
+            await getChildTimes(node, j++, [...parentDescriptions, childDescription])
           }
         }
 
-        const thisNodeWithTimesContext = thisContext.getNode(node.getRoute())
 
-        const resourceInfo = checkResourceInfo(thisNodeWithTimesContext)
+        const resourceInfo = checkResourceInfo(node)
 
         console.log('resourceInfo', resourceInfo)
 
         if (!resourceInfo){
+          const description = node.getData().description?.content || ""
 
           const systemPrompt = systemPromptRecursive
-          const userPrompt = getUserPromptRecursive(nodeContent.description, parentDescriptions, thisNodeWithTimesContext)
+          const userPrompt = getUserPromptRecursive(description, parentDescriptions, node)
   
           console.log('systemPrompt', systemPrompt, userPrompt)
           if (!systemPrompt || !userPrompt) throw new Error('missing prompt');
@@ -137,25 +148,20 @@ export const suggestRecursive = async <T, S>(
 
 
         const resultParsed = results[0]
-
-        const updatedNode = thisContext.getNode(thisNodeWithTimesContext.getRoute())
         
-        thisContext = setResourceInfo(thisContext.getNode(updatedNode.getRoute()), parsePattern(resultParsed, updatedNode))
-
+        setResourceInfo(node, parsePattern(resultParsed,node))
   
-        return thisContext
       } 
-      
-      return thisContext
       
     }
   }
 
-  const contextWithTimes: FosContext = await getChildTimes(node, node.getNodeData().selectedOption, descriptions)
+  const selectedOption = node.getData().option?.selectedIndex || 0
 
-  console.log('contextWithTimes', contextWithTimes.data.nodes)
+  const contextWithTimes = await getChildTimes(node, 0, descriptions)
 
-  return contextWithTimes
+
+  return
 
 }
 

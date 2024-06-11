@@ -49,7 +49,7 @@ export function ComboboxEditable({
   ...props
 }: {
   values: {value: string, label: string}[],
-  getFocus: () => void,
+  getFocus: (char: number | null) => void,
   emptyMessage?: string,
   selectMessage?: string,
   searchMessage?: string,
@@ -67,7 +67,7 @@ export function ComboboxEditable({
   keyDown: (e: React.KeyboardEvent<HTMLDivElement>) => void,
   keyPresses: (e: React.KeyboardEvent<HTMLDivElement>) => void,
   hasFocus: boolean,
-  focusChar: number,
+  focusChar: number | null,
   locked: boolean,
 } & React.HTMLAttributes<HTMLButtonElement>) {
 

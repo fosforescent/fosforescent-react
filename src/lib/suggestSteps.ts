@@ -1,4 +1,4 @@
-import { FosPath, IFosNode, FosTrail, FosRoute } from "@fosforescent/fosforescent-js"
+import { FosPath, IFosNode, FosTrail, FosRoute, FosDataContent } from "@fosforescent/fosforescent-js"
 
 export const suggestSteps = async (
   promptGPT: (systemPrompt: string, userPrompt: string, options?: { temperature?: number | undefined; }) => Promise<{
@@ -12,19 +12,21 @@ export const suggestSteps = async (
   const [root, ...trailWithoutRoot] = trail
   const token = localStorage.getItem('token')
 
-  const {
-    description,
-    content  
-  } = node.getOptionContent()
+ 
+  const description = node.getData().description?.content || ""
+
+
+  const past = node.getAncestors().reverse().map(([node, number], index) => {
+    return node
+  })
+
   
 
-  const descriptions = trailWithoutRoot.map((edge: [string, string], index: number) => {
-    const route: FosRoute = [root, ...trailWithoutRoot.slice(0, index + 1)]
-    const thisNode = node.context.getNode(route)
-    const thisNodeOptionContent = thisNode.getOptionContent()
-    return thisNodeOptionContent.description
+  const descriptions = past.map((node, index: number) => {
+    const data = node.getData();
+    return data.description?.content
   })
-    
+
   const [mainTask, ...contextTasks] = descriptions.slice().reverse()
 
   const systemPrompt = `You are part of a group of workers building a tree of subtasks to describe a project, which may be big or small.  As such, you do not provide information that is not directly related to the subtask at hand because it will probably be provided by another worker`
@@ -95,45 +97,44 @@ export const suggestSteps = async (
   const newTasks = taskSets[0]
 
   const newNodeItems = newTasks.map((task: string) => {
-    const newNodeData: FosNodeData = {
-    description: `${description}: ${task}`,
-    selectedOption: 0,
-    collapsed: false,
-    options: [{
-      description: task,
-      data: {},
-      content: []
-    }],
+    const newNodeData: FosDataContent = {
+      description: {
+        content: task
+      }
     }
     return newNodeData
   })
 
  
   console.log('suggestion1')
-  const nodeData = node.getNodeData()
+  const nodeData = node.getData()
 
-  if (content.length > 0){
+
+
+  if (node.getChildren().length > 0){
     // add new tasks to new option
     console.log('suggestion1')
 
+    // if is option add child
 
-    const newContext = node.context.addOptionToNode(node.getRoute(), { description, data: {}, content: [] });
-    const addChildrenIndex = nodeData.options.length
+    // else create new option node on parent and move this under
 
-
-    const newNode = newContext.getNode(node.getRoute())
-    const newNodeData = newNode.getNodeData()
-
-    newNode.setNodeData({
-      ...newNodeData, 
-      selectedOption: addChildrenIndex
-    })
+    
 
   }
 
 
-  const newContext = node.context.addChildrenToNode(node, newNodeItems)
-  // newContext.setNodes(newContext.data.nodes)
-  return [newContext, null]
-  // return [newContext, newSubscriptionData]
+  for (const newNodeItem of newNodeItems){
+
+    const newNode = node.newChild()
+    const newNodeData = newNode.getData()
+    newNode.setData({
+      ...newNodeData,
+      ...newNodeItem
+    })
+  }
+
+
+
+  return
 }
