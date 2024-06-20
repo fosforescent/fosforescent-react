@@ -33,7 +33,9 @@ export const RowBody = ({
   // activeModule,
   // options: fosReactOptions
   global, 
-  meta
+  meta,
+  state,
+  updateState
   
 }: TrellisRowBodyComponentProps<IFosNode, FosReactGlobal | undefined>) => {
 
@@ -54,6 +56,7 @@ export const RowBody = ({
     }else if (node.getNodeType() === 'task'){
       return [{value: '0', label: getDescription(node)}]
     }else{
+      console.log('node', node)
       throw new Error('getoptions must be used on a task or option node')
     }
   }
@@ -101,27 +104,28 @@ export const RowBody = ({
   }
   
   
-  const handleTextEdit = (value: string) => {
+  const handleTextEdit = (value: string, focusChar: number | null) => {
     node.setData({description: {content: value}})
+    meta.trellisNode.setFocus(focusChar)
   }
 
   const handleChange = (value: string) => {
     node.setData({option: {selectedIndex: parseInt(value)}})
   }
 
-  const handleKeyPresses = (e: React.KeyboardEvent<HTMLDivElement>) => {
-    meta.keyPressEvents(e)
+  const handleKeyUp = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    meta.trellisNode.keyUpEvents(e)
 
 
+    // if (e.altKey && e.ctrlKey){
+    //   console.log('test', selectedIndex, node.getChildren().length );
+    //   handleChange( selectedIndex ? ( (selectedIndex - 1 + (children.length)) % children.length ).toString() : "0" )
+    // }
 
-    if (e.altKey && e.ctrlKey){
-      console.log('test', selectedIndex, node.getChildren().length );
-      handleChange( selectedIndex ? ( (selectedIndex - 1 + (children.length)) % children.length ).toString() : "0" )
-    }
   }
   
   const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
-    meta.keyDownEvents(e)
+    meta.trellisNode.keyDownEvents(e)
   }
 
   const handleAddOption = () => {
@@ -138,22 +142,32 @@ export const RowBody = ({
     meta.toggleCollapse()
   }
 
+  const focusChar = meta.trellisNode.hasFocus()
+  
+  const isDragging = state.draggingNode ===  meta.trellisNode.getId()
+  const draggingOver = state.draggingOverNode === meta.trellisNode.getId()
+
+  const value = getDescription(node)
+
+  const isRoot = !meta.trellisNode.getParent()
+
+  console.log('isRoot', isRoot, meta.trellisNode.getId())
 
   return (
-      <div>
+      <div className="flex flex-initial grow">
         <div className="flex flex-initial grow">
           <ComboboxEditable 
             className='w-full bg-transparent'
             handleTextEdit={handleTextEdit}
             handleChange={handleChange}
             suggestOption={handleSuggestOption}
-            getFocus={meta.acquireFocus}
-            hasFocus={!!meta.isFocused}
-            focusChar={meta.focus?.focusChar}
-            isDragging={meta.dragging}
-            draggingOver={meta.isBeingDraggedOver}
-            keyDown={handleKeyDown}
-            keyPresses={handleKeyPresses}
+            // getFocus={meta.acquireFocus}
+            hasFocus={!!focusChar}
+            focusChar={focusChar}
+            isDragging={isDragging}
+            draggingOver={draggingOver}
+            onKeyDown={handleKeyDown}
+            onKeyUp={handleKeyUp}
             selectedIndex={selectedIndex}
             values={options}
             locked={global.locked || false }
@@ -161,12 +175,11 @@ export const RowBody = ({
             defaultValue={selectedIndex.toString()}
             addOption={handleAddOption}
             deleteOption={handleDeleteOption}
-            toggleCollapse={handleToggleCollapse}
             />
 
         </div>
         {ModuleRowComponent && <div className={`right-box`}>
-          <ModuleRowComponent node={node} options={global} />
+          <ModuleRowComponent node={node} options={global} meta={meta} />
         </div>}
       </div>)
 

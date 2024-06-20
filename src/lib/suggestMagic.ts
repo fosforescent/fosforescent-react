@@ -75,7 +75,7 @@ export const suggestMagic = async (
 
             switch (resourceName) {
               case 'duration':
-                setDurationInfo(node, { marginal: parseTime(resultParsed) })
+                setDurationInfo(node, { plannedMarginal: parseTime(resultParsed), entries: [] })
                 break;
 
             }
@@ -141,7 +141,7 @@ export const suggestMagic = async (
             switch (resourceName) {
 
               case 'duration':
-                setDurationInfo(node, { marginal: parseTime(resultParsed) })
+                setDurationInfo(node, { plannedMarginal: parseTime(resultParsed), entries: []})
                 break;
 
             }

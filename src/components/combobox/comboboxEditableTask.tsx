@@ -273,10 +273,10 @@ export function ComboboxEditable({
         >
           <InputDiv
           disabled={locked}
-          autoFocus={hasFocus}
+          shouldFocus={hasFocus}
           placeholder={values.length > 1 ? "New Option" : "Enter a task to plan"}
           className="rounded-r-none w-full cursor-text"
-          getFocus={getFocus}
+          // getFocus={getFocus}
           value={value
             ? values.find((item) => item.value === value)?.label || ""
             : selectMessage} 

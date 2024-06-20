@@ -1,7 +1,7 @@
 import { BrainCircuit, Dices } from "lucide-react"
 import { FosModule } from "./fosModules"
 import { Button } from "@/components/ui/button"
-import { SelectionPath, FosNode } from "@fosforescent/fosforescent-js"
+import { SelectionPath, IFosNode } from "@fosforescent/fosforescent-js"
 import { suggestRecursive } from "@/lib/suggestRecursive"
 import { FosReactOptions } from ".."
 
@@ -9,7 +9,7 @@ import { FosReactOptions } from ".."
 
 
 
-const ResourceComponent = ({ node, options }: { node: FosNode, options: FosReactOptions }) => {
+const ResourceComponent = ({ node, options }: { node: IFosNode, options: FosReactOptions }) => {
 
 
 
@@ -28,19 +28,19 @@ const ResourceComponent = ({ node, options }: { node: FosNode, options: FosReact
 
 
   const handleMinProbabilitySuccessPath = async () => {
-    const newContext = node.setPath(probabilityInfo.minProbabilitySuccessPath)
+    // const newContext = node.setPath(probabilityInfo.minProbabilitySuccessPath)
   }
   
   const handleMaxProbabilitySuccessPath = async () => {
-    const newContext = node.setPath(probabilityInfo.maxProbabilitySuccessPath)
+    // const newContext = node.setPath(probabilityInfo.maxProbabilitySuccessPath)
   }
   
   const handleMinProbabilityFailurePath = async () => {
-    const newContext = node.setPath(probabilityInfo.minProbabilityFailurePath)
+    // const newContext = node.setPath(probabilityInfo.minProbabilityFailurePath)
   }
   
   const handleMaxProbabilityFailurePath = async () => {
-    const newContext = node.setPath(probabilityInfo.maxProbabilityFailurePath)
+    // const newContext = node.setPath(probabilityInfo.maxProbabilityFailurePath)
   }
   
   
@@ -49,14 +49,14 @@ const ResourceComponent = ({ node, options }: { node: FosNode, options: FosReact
 
 
   const systemPromptBase = `Take a deep breath.  Please respond only with a single valid JSON object with the keys "probabilitySuccess" and "probabilityFailure" and a number value between 1-100 representing the percentage of success and failure respectively`
-  const getUserPromptBase = (thisDescription: string, parentDescriptions: string[], node: FosNode) =>  `How likely is it that the following will lead to success or failure respectively ${thisDescription} in the context of the task ${parentDescriptions.join(' subtask of the task ')} please express as a percentage (0-100)`
+  const getUserPromptBase = (thisDescription: string, parentDescriptions: string[], node: IFosNode) =>  `How likely is it that the following will lead to success or failure respectively ${thisDescription} in the context of the task ${parentDescriptions.join(' subtask of the task ')} please express as a percentage (0-100)`
   const systemPromptRecursive = `Take a deep breath.  Please respond only with a single valid JSON object with the keys "probabilitySuccess" and "probabilityFailure" and a number value between 1-100 representing the percentage of success and failure respectively`
-  const getUserPromptRecursive = (thisDescription: string, parentDescriptions: string[], node: FosNode) => {
+  const getUserPromptRecursive = (thisDescription: string, parentDescriptions: string[], node: IFosNode) => {
     const resourceInfo = getProbabilityInfo(node)
     return `How likely is it that the following will lead to success or failure respectively ${thisDescription} in the context of the task ${parentDescriptions.join(' subtask of the task ')} please express as a percentage (0-100), but factoring out the probability of its subtasks, which are estimated to be likely somewhere between ${resourceInfo.minSuccess * 100} and ${resourceInfo.maxSuccess * 100}, averaging ${resourceInfo.averageSuccess * 100} to succeed and somewhere between ${resourceInfo.minFailure * 100} and ${resourceInfo.maxFailure * 100}, averaging ${resourceInfo.averageFailure * 100} to fail. This should leave only the marginal probability, which is the information we want.`
   }
   const pattern = /.*(\{[^{}]*\}).*/m
-  const parsePattern = (result: any, node: FosNode): ProbabilityData => {
+  const parsePattern = (result: any, node: IFosNode): ProbabilityData => {
 
     const resultParsed = result as { probabilitySuccess: number, probabilityFailure: number }
 
@@ -76,23 +76,25 @@ const ResourceComponent = ({ node, options }: { node: FosNode, options: FosReact
 
   const handleSuggestProbability = async () => {
     if (options?.canPromptGPT && options?.promptGPT){
-      const newContext = await suggestRecursive(options.promptGPT, node, {
-        systemPromptBase,
-        getUserPromptBase,
-        systemPromptRecursive,
-        getUserPromptRecursive,
-        pattern,
-        parsePattern,
-        getResourceInfo: getProbabilityInfo,
-        setResourceInfo: setProbabilityInfo,
-        checkResourceInfo: checkProbabilityInfo
-      } )
-      if (newContext){
-        node.context.setNodes(newContext.data.nodes)
-      }else{
+
+      try {
+        await suggestRecursive(options.promptGPT, node, {
+          systemPromptBase,
+          getUserPromptBase,
+          systemPromptRecursive,
+          getUserPromptRecursive,
+          pattern,
+          parsePattern,
+          getResourceInfo: getProbabilityInfo,
+          setResourceInfo: setProbabilityInfo,
+          checkResourceInfo: checkProbabilityInfo
+        } )
+  
+      } catch (error) {
+        console.error('error', error)
         options?.toast && options.toast({
           title: 'Error',
-          description: 'No suggestions could be generated',
+          description: 'No suggestions could be generated: ' + error,
           duration: 5000,
         })
       }
@@ -167,7 +169,7 @@ type ProbabilityFailureInfo = {
 
 
 
-const setProbabilityInfo = (node: FosNode, value: {
+const setProbabilityInfo = (node: IFosNode, value: {
   marginSuccess: number,
   marginFailure: number,
 }) => {
@@ -180,8 +182,8 @@ const setProbabilityInfo = (node: FosNode, value: {
 
 }
 
-const getProbabilityInfo = (node: FosNode, index?: number): ProbabilityInfo  => {
-  const nodeData = node.getData(index)
+const getProbabilityInfo = (node: IFosNode): ProbabilityInfo  => {
+  const nodeData = node.getData()
   console.log('nodeData', nodeData)
 
   const probabilitySuccessInfo = getProbabilitySuccessInfo(node)
@@ -219,9 +221,8 @@ const ProbablityInput = ({
 
 
 
-const getProbabilityFailureInfo = (thisNode: FosNode, index?: number): ProbabilityFailureInfo => {
-  const indexToGet = thisNode.parseIndex(index)
-  // get selected option
+const getProbabilityFailureInfo = (thisNode: IFosNode, index?: number): ProbabilityFailureInfo => {
+
 
   // for each child
     // get min (+ marginal)
@@ -234,88 +235,87 @@ const getProbabilityFailureInfo = (thisNode: FosNode, index?: number): Probabili
 
 
     
-  const children = thisNode.getChildren(indexToGet)
+  // const children = thisNode.getChildren()
 
-  const thisNodeOptionContent = thisNode.getOptionContent(indexToGet)
+  // const thisNodeOptionContent = thisNode.getOptionContent(indexToGet)
 
-  const thisNodeFailure = thisNodeOptionContent.data?.probability?.marginFailure || 0
-
-
+  const thisNodeFailure = thisNode.getData().probability?.marginFailure || 0
 
 
-  if (children.length === 0){
+
+
+  // if (children.length === 0){
     return {
       minFailure: thisNodeFailure,
       maxFailure: thisNodeFailure,
       averageFailure: thisNodeFailure,
       currentFailure: thisNodeFailure,
-      minProbabilityFailurePath: [],
-      maxProbabilityFailurePath: [],
+      minProbabilityFailurePath: {},
+      maxProbabilityFailurePath: {},
       marginFailure: thisNodeFailure
     }
-  } else {
+  // } else {
 
-    let min = 0
-    let max = 0
-    let average = 0
-    let current = 0
-    const minPaths: SelectionPath = []
-    const maxPaths: SelectionPath = []
+  //   let min = 0
+  //   let max = 0
+  //   let average = 0
+  //   let current = 0
+  //   const minPaths: SelectionPath = []
+  //   const maxPaths: SelectionPath = []
 
-    children.forEach((child, i) => {
-      const childData = child.getNodeData()
-      const childOptions = childData.options
+  //   children.forEach((child, i) => {
+  //     const childData = child.getNodeData()
+  //     const childOptions = childData.options
 
   
-      let minOptionCost = Number.MAX_SAFE_INTEGER;
-      let maxOptionCost = Number.MIN_SAFE_INTEGER;
-      const minOptionPaths: SelectionPath = {};
-      const maxOptionPaths: SelectionPath = {};
-      let avgOptionCost = 0;
-      let currentOptionCost = 0;
+  //     let minOptionCost = Number.MAX_SAFE_INTEGER;
+  //     let maxOptionCost = Number.MIN_SAFE_INTEGER;
+  //     const minOptionPaths: SelectionPath = {};
+  //     const maxOptionPaths: SelectionPath = {};
+  //     let avgOptionCost = 0;
+  //     let currentOptionCost = 0;
 
-      childOptions.forEach( (option, j) => {
-        const childOptionCostInfo = getProbabilityInfo(child, j)
-        if (childOptionCostInfo.minFailure < minOptionCost){
-          minOptionCost = childOptionCostInfo.minFailure
-          minOptionPaths[j] = [childOptionCostInfo.minProbabilityFailurePath]
-        }
-        if (childOptionCostInfo.maxFailure > maxOptionCost){
-          maxOptionCost = childOptionCostInfo.maxFailure
-          maxOptionPaths[j] = [childOptionCostInfo.maxProbabilityFailurePath]
-        }
-        avgOptionCost = ((avgOptionCost * j) + childOptionCostInfo.averageFailure) / (j + 1)
-        if (j === childData.selectedOption){
-          currentOptionCost = childOptionCostInfo.currentFailure
-        }
-      })
-      min += minOptionCost
-      max += maxOptionCost
-      average += avgOptionCost 
-      current += currentOptionCost
-    });
+  //     childOptions.forEach( (option, j) => {
+  //       const childOptionCostInfo = getProbabilityInfo(child, j)
+  //       if (childOptionCostInfo.minFailure < minOptionCost){
+  //         minOptionCost = childOptionCostInfo.minFailure
+  //         minOptionPaths[j] = [childOptionCostInfo.minProbabilityFailurePath]
+  //       }
+  //       if (childOptionCostInfo.maxFailure > maxOptionCost){
+  //         maxOptionCost = childOptionCostInfo.maxFailure
+  //         maxOptionPaths[j] = [childOptionCostInfo.maxProbabilityFailurePath]
+  //       }
+  //       avgOptionCost = ((avgOptionCost * j) + childOptionCostInfo.averageFailure) / (j + 1)
+  //       if (j === childData.selectedOption){
+  //         currentOptionCost = childOptionCostInfo.currentFailure
+  //       }
+  //     })
+  //     min += minOptionCost
+  //     max += maxOptionCost
+  //     average += avgOptionCost 
+  //     current += currentOptionCost
+  //   });
 
-    return {
-      minFailure: min + thisNodeFailure,
-      maxFailure: max + thisNodeFailure,
-      averageFailure: average + thisNodeFailure,
-      currentFailure: current + thisNodeFailure,
-      minProbabilityFailurePath: minPaths,
-      maxProbabilityFailurePath: maxPaths,
-      marginFailure: thisNodeFailure
-    }
+  //   return {
+  //     minFailure: min + thisNodeFailure,
+  //     maxFailure: max + thisNodeFailure,
+  //     averageFailure: average + thisNodeFailure,
+  //     currentFailure: current + thisNodeFailure,
+  //     minProbabilityFailurePath: minPaths,
+  //     maxProbabilityFailurePath: maxPaths,
+  //     marginFailure: thisNodeFailure
+  //   }
 
     
-  }
+  // }
 
 
 }
 
 
 
-const getProbabilitySuccessInfo = (thisNode: FosNode, index?: number): ProbabilitySuccessInfo => {
-  const indexToGet = thisNode.parseIndex(index)
-  // get selected option
+const getProbabilitySuccessInfo = (thisNode: IFosNode, index?: number): ProbabilitySuccessInfo => {
+ // get selected option
 
   // for each child
     // get min (+ marginal)
@@ -328,85 +328,85 @@ const getProbabilitySuccessInfo = (thisNode: FosNode, index?: number): Probabili
 
 
     
-  const children = thisNode.getChildren(indexToGet)
+  const children = thisNode.getChildren()
 
-  const thisNodeOptionContent = thisNode.getOptionContent(indexToGet)
+  // const thisNodeOptionContent = thisNode.getOptionContent(indexToGet)
 
-  const thisNodeSuccess = thisNodeOptionContent.data?.probability?.marginSuccess || 0
-
-
+  const thisNodeSuccess = thisNode.getData().probability?.marginSuccess || 0
 
 
-  if (children.length === 0){
+
+
+  // if (children.length === 0){
     return {
       minSuccess: thisNodeSuccess,
       maxSuccess: thisNodeSuccess,
       averageSuccess: thisNodeSuccess,
       currentSuccess: thisNodeSuccess,
-      minProbabilitySuccessPath: [],
-      maxProbabilitySuccessPath: [],
+      minProbabilitySuccessPath: {},
+      maxProbabilitySuccessPath: {},
       marginSuccess: thisNodeSuccess
     }
-  } else {
+  // } else {
 
-    let min = 0
-    let max = 0
-    let average = 0
-    let current = 0
-    const minPaths: SelectionPath = []
-    const maxPaths: SelectionPath = []
+  //   let min = 0
+  //   let max = 0
+  //   let average = 0
+  //   let current = 0
+  //   const minPaths: SelectionPath = []
+  //   const maxPaths: SelectionPath = []
 
-    children.forEach((child, i) => {
-      const childData = child.getNodeData()
-      const childOptions = childData.options
+    // children.forEach((child, i) => {
+    //   const childData = child.getNodeData()
+    //   const childOptions = childData.options
 
   
-      let minOptionCost = Number.MAX_SAFE_INTEGER;
-      let maxOptionCost = Number.MIN_SAFE_INTEGER;
-      const minOptionPaths: SelectionPath = {};
-      const maxOptionPaths: SelectionPath = {};
-      let avgOptionCost = 0;
-      let currentOptionCost = 0;
+    //   let minOptionCost = Number.MAX_SAFE_INTEGER;
+    //   let maxOptionCost = Number.MIN_SAFE_INTEGER;
+    //   const minOptionPaths: SelectionPath = {};
+    //   const maxOptionPaths: SelectionPath = {};
+    //   let avgOptionCost = 0;
+    //   let currentOptionCost = 0;
 
-      childOptions.forEach( (option, j) => {
-        const childOptionCostInfo = getProbabilityInfo(child, j)
-        if (childOptionCostInfo.minSuccess < minOptionCost){
-          minOptionCost = childOptionCostInfo.minSuccess
-          minOptionPaths[j] = [childOptionCostInfo.minProbabilitySuccessPath]
-        }
-        if (childOptionCostInfo.maxSuccess > maxOptionCost){
-          maxOptionCost = childOptionCostInfo.maxSuccess
-          maxOptionPaths[j] = [childOptionCostInfo.maxProbabilitySuccessPath]
-        }
-        avgOptionCost = ((avgOptionCost * j) + childOptionCostInfo.averageSuccess) / (j + 1)
-        if (j === childData.selectedOption){
-          currentOptionCost = childOptionCostInfo.currentSuccess
-        }
-      })
-      min += minOptionCost
-      max += maxOptionCost
-      average += avgOptionCost 
-      current += currentOptionCost
-    });
+    //   childOptions.forEach( (option, j) => {
+    //     const childOptionCostInfo = getProbabilityInfo(child, j)
+    //     if (childOptionCostInfo.minSuccess < minOptionCost){
+    //       minOptionCost = childOptionCostInfo.minSuccess
+    //       minOptionPaths[j] = [childOptionCostInfo.minProbabilitySuccessPath]
+    //     }
+    //     if (childOptionCostInfo.maxSuccess > maxOptionCost){
+    //       maxOptionCost = childOptionCostInfo.maxSuccess
+    //       maxOptionPaths[j] = [childOptionCostInfo.maxProbabilitySuccessPath]
+    //     }
+    //     avgOptionCost = ((avgOptionCost * j) + childOptionCostInfo.averageSuccess) / (j + 1)
+    //     if (j === childData.selectedOption){
+    //       currentOptionCost = childOptionCostInfo.currentSuccess
+    //     }
+    //   })
+    //   min += minOptionCost
+    //   max += maxOptionCost
+    //   average += avgOptionCost 
+    //   current += currentOptionCost
+    // });
 
-    return {
-      minSuccess: min + thisNodeSuccess,
-      maxSuccess: max + thisNodeSuccess,
-      averageSuccess: average + thisNodeSuccess,
-      currentSuccess: current + thisNodeSuccess,
-      minProbabilitySuccessPath: minPaths,
-      maxProbabilitySuccessPath: maxPaths,
-      marginSuccess: thisNodeSuccess
-    }
+    // return {
+    //   minSuccess: min + thisNodeSuccess,
+    //   maxSuccess: max + thisNodeSuccess,
+    //   averageSuccess: average + thisNodeSuccess,
+    //   currentSuccess: current + thisNodeSuccess,
+    //   minProbabilitySuccessPath: minPaths,
+    //   maxProbabilitySuccessPath: maxPaths,
+    //   marginSuccess: thisNodeSuccess
+    // }
 
     
-  }
+  // }
 
 
 }
 
 
-const checkProbabilityInfo = (node: FosNode): boolean => {
+const checkProbabilityInfo = (node: IFosNode): boolean => {
   const nodeData = node.getData()
   return !!nodeData.probability
 }

@@ -1,6 +1,6 @@
 import { BrainCircuit, Download, FileText } from "lucide-react"
 import { FosModule } from "./fosModules"
-import { SelectionPath, FosNode } from "@fosforescent/fosforescent-js"
+import { SelectionPath, IFosNode } from "@fosforescent/fosforescent-js"
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 import { suggestRecursive } from "@/lib/suggestRecursive"
@@ -12,7 +12,7 @@ import { FosReactOptions } from ".."
 
 
 
-const ResourceComponent = ({ node, options }: { node: FosNode, options: FosReactOptions }) => {
+const ResourceComponent = ({ node, options }: { node: IFosNode, options: FosReactOptions }) => {
 
 
   const documentInfo = getDocumentInfo(node)
@@ -44,9 +44,9 @@ const ResourceComponent = ({ node, options }: { node: FosNode, options: FosReact
 
 
   const systemPromptBase = `Take a deep breath.  Please respond only with a single valid JSON object with the key "document" and a string value`
-  const getUserPromptBase = (thisDescription: string, parentDescriptions: string[], node: FosNode) => `Please provide text which is the fulfillment of these instructions: ${thisDescription} in the context of the task ${parentDescriptions.join(' subtask of the task ')}`
+  const getUserPromptBase = (thisDescription: string, parentDescriptions: string[], node: IFosNode) => `Please provide text which is the fulfillment of these instructions: ${thisDescription} in the context of the task ${parentDescriptions.join(' subtask of the task ')}`
   const systemPromptRecursive = `Take a deep breath.  Please respond only with a single valid JSON object with the key "document" and a string value`
-  const getUserPromptRecursive = (thisDescription: string, parentDescriptions: string[], node: FosNode) => {
+  const getUserPromptRecursive = (thisDescription: string, parentDescriptions: string[], node: IFosNode) => {
     const resourceInfo = getDocumentInfo(node)
     return `Please provide text which is the fulfillment of these instructions:${thisDescription} in the context of the task ` 
       + `${parentDescriptions.join(' subtask of the task ')}, but the following pieces are already written as part of child tasks. ` 
@@ -54,7 +54,7 @@ const ResourceComponent = ({ node, options }: { node: FosNode, options: FosReact
       + `${node.getChildren().map((child, index) => `{{${index}}} : ${getDocumentInfo(child).aggregated}` ).join("\n")}`
   }
   const pattern = /.*(\{[^{}]*\}).*/m
-  const parsePattern = (result: any, node: FosNode): DocumentData => {
+  const parsePattern = (result: any, node: IFosNode): DocumentData => {
 
 
     const resultParsed = result as { document: string }
@@ -68,23 +68,25 @@ const ResourceComponent = ({ node, options }: { node: FosNode, options: FosReact
   const handleSuggestDocument = async () => {
     console.log('suggesting document')
     if (options?.canPromptGPT && options?.promptGPT){
-      const newContext = await suggestRecursive(options.promptGPT, node, {
-        systemPromptBase,
-        getUserPromptBase,
-        systemPromptRecursive,
-        getUserPromptRecursive,
-        pattern,
-        parsePattern,
-        getResourceInfo: getDocumentInfo,
-        setResourceInfo: setDocumentInfo,
-        checkResourceInfo: checkDocumentInfo,
-      } )
-      if (newContext){
-        node.context.setNodes(newContext.data.nodes)
-      }else{
+
+      try {
+        await suggestRecursive(options.promptGPT, node, {
+          systemPromptBase,
+          getUserPromptBase,
+          systemPromptRecursive,
+          getUserPromptRecursive,
+          pattern,
+          parsePattern,
+          getResourceInfo: getDocumentInfo,
+          setResourceInfo: setDocumentInfo,
+          checkResourceInfo: checkDocumentInfo,
+        } )
+  
+      } catch (error) {
+        console.error('error suggesting document', error)
         options?.toast && options.toast({
           title: 'Error',
-          description: 'No suggestions could be generated',
+          description: 'Error suggesting document: ' + error,
           duration: 5000,
         })
       }
@@ -118,7 +120,7 @@ const ResourceComponent = ({ node, options }: { node: FosNode, options: FosReact
 
 
 
-const DocumentRowComponent = ({ node }: { node: FosNode }) => {
+const DocumentRowComponent = ({ node }: { node: IFosNode }) => {
 
   const codeId = 0
 
@@ -139,7 +141,7 @@ type DocumentData = {
 }
 
 
-const getDocumentInfo = (node: FosNode): {
+const getDocumentInfo = (node: IFosNode): {
   content: string,
   aggregated?: string
 } => {
@@ -168,7 +170,7 @@ const getDocumentInfo = (node: FosNode): {
 
 }
 
-const setDocumentInfo = (node: FosNode, documentInfo: {
+const setDocumentInfo = (node: IFosNode, documentInfo: {
   content: string
 }) => {
   const nodeData = node.getData()
@@ -178,7 +180,7 @@ const setDocumentInfo = (node: FosNode, documentInfo: {
   })
 }
 
-const checkDocumentInfo = (node: FosNode): boolean => {
+const checkDocumentInfo = (node: IFosNode): boolean => {
   const nodeData = node.getData()
   return !!nodeData.document && !!nodeData.document.content
 }

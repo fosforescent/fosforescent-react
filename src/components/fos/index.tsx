@@ -15,9 +15,8 @@ import {
 
 import {  FosNodeContent,  FosContextData, FosPath, FosTrail,  IFosNode, FosRootNode } from "@fosforescent/fosforescent-js";
 
-import { FosModule } from './modules/fosModules'
+import { FosModule, fosModules } from './modules/fosModules'
 import { defaultContext } from './initialData'
-import { ThemeProvider } from '../theme-provider'
 import { Trellis, TrellisNodeInterface } from '@syctech/react-trellis'
 import { suggestOption } from '@/lib/suggestOption'
 import { suggestSteps } from '@/lib/suggestSteps'
@@ -63,14 +62,39 @@ export const MainView = ({
 
   const rootNode = React.useMemo(() => {
 
-    return new FosRootNode(dataToUse, async (newData) => setData(newData))
+    console.log('dataToUse', dataToUse)
+    const setDataWithLog = (newData: FosContextData) => {
+      console.log('setData', newData)
+      setData(newData)
+    }
+
+    return new FosRootNode(dataToUse, async (newData) => setDataWithLog(newData))
   }, [data, setData])
 
-  const global = getGlobal(options || {})
+
+  const [activeModule, setActiveModule] = useState<FosModule | undefined>(fosModules.workflow)
+
+  const setActiveModuleWithLog = (module: FosModule | undefined) => {
+    console.log('setActiveModule', module)
+    setActiveModule(module)
+  }
+
+  const optionsWithModule = {
+    ...(options || {}),
+    activeModule,
+    setActiveModule: setActiveModuleWithLog,
+  }
+
+  const global = getGlobal(optionsWithModule || {})
+
+  const theme = options?.theme ? options.theme : window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"
+
+
+
+  console.log('theme', theme)
 
   return (
-    <div className='w-full fos-root' > 
-      <ThemeProvider defaultTheme={options?.theme || "system"}>
+    <div className={`w-full fos-root ${theme}`} > 
         <Trellis
           rootNode={rootNode as IFosNode}
           components={{
@@ -78,8 +102,8 @@ export const MainView = ({
             rowBody: RowBody,
           }}
           global={global}
+          theme={theme}
         />
-      </ThemeProvider>
     </div>)
 }
 
@@ -116,9 +140,9 @@ const getGlobal = (options: FosReactOptions): Partial<FosReactOptions> => {
     ...( options && options?.canUndo ? { undo: options.undo } : {}),
     ...( options ? { toast: options.toast } : {}),
     ...( options ? { theme: options.theme } : {}),
-    ...( options ? { activeModule: options.activeModule } : {}),
+    ...( options ? { activeModule: options.activeModule || fosModules.workflow } : { activeModule: fosModules.workflow }),
     ...( options ? { setActiveModule: options.setActiveModule } : {}),
-    ...( options ? {  } : {}),
+    ...( { modules: [...(options.modules || []), ...Object.values(fosModules) ] } ),
     ...( options ? { locked: options.locked } : { locked: false }),
   }
 

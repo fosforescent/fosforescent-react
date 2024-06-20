@@ -1,6 +1,8 @@
+// eslint-disable-next-line
+/// <reference types="../../global.d.ts" /> 
+
 import React, { useEffect, useRef } from 'react';
 import moduleStyles from './inputDiv.module.css';
-import { ThemeProvider } from '../theme-provider';
 
 
 export interface InputDivProps {
@@ -10,13 +12,14 @@ export interface InputDivProps {
   onClick?: (e: React.MouseEvent<HTMLDivElement>) => void;
   onKeyDown?: (e: React.KeyboardEvent<HTMLDivElement>) => void;
   onKeyUp?: (e: React.KeyboardEvent<HTMLDivElement>) => void;
+  onKeyPress?: (e: React.KeyboardEvent<HTMLDivElement>) => void;
   style?: React.CSSProperties;
   className?: string;
   disabled?: boolean;
-  autoFocus?: boolean;
+  shouldFocus?: boolean;
   placeholder: string;
   focusChar?: number | null;
-  getFocus: (char: number | null) => void;
+  // getFocus: () => void;
 }
 
 export const InputDiv: React.FC<InputDivProps> = ({
@@ -26,34 +29,48 @@ export const InputDiv: React.FC<InputDivProps> = ({
   onClick,
   onKeyDown,
   onKeyUp,
+  onKeyPress,
   style,
   className,
   disabled,
-  autoFocus,
+  shouldFocus,
   placeholder,
   focusChar,
-  getFocus,
+  // getFocus,
   ...props
 }) => {
   const divRef = useRef<HTMLDivElement>(null);
-
   
   const hasFocus = divRef?.current === document.activeElement;
 
   useEffect(() => {
-    if (autoFocus && divRef.current) {
-      console.log("GOT FOCUS")
-      divRef.current.focus();
+    if (shouldFocus && divRef.current && !hasFocus) {
+      console.log("GOT FOCUS -- ", value)
+      setCursorPosition(divRef.current, focusChar || 0)
+      onFocus && onFocus(focusChar || 0);
     }
-  }, [autoFocus]);
+  }, [shouldFocus, divRef.current, hasFocus]);
+
+
+  // const focusChar = divRef.current ? getCursorPosition(divRef.current) : 0;
+
+  // useEffect(() => {
+
+  // }, [hasFocus, focusChar])
+
 
   useEffect(() => {
+    if(!shouldFocus){
+      return
+    }
     if (!hasFocus){
       return
     }
     if(!divRef.current){
       return 
     }
+    console.log('setting cursor position', focusChar)
+    onFocus && onFocus(focusChar || 0);
     setCursorPosition(divRef.current, focusChar || 0)
   }, [focusChar]);
 
@@ -64,7 +81,7 @@ export const InputDiv: React.FC<InputDivProps> = ({
     }
     const cursorPosition = getCursorPosition(divRef.current);
     const newValue = divRef.current.innerText;
-    onChange(newValue, cursorPosition);    
+    onChange(newValue, cursorPosition);
 
   };
 
@@ -85,7 +102,7 @@ export const InputDiv: React.FC<InputDivProps> = ({
     if (!divRef.current) {
       return;
     }
-    // getFocus(null);
+    // getFocus();
     updateInput();
   }
 
@@ -94,7 +111,7 @@ export const InputDiv: React.FC<InputDivProps> = ({
     if (!divRef.current) {
       return;
     }
-    updateInput();
+    // updateInput();
   };
 
   const handleKeyUp = (e: React.KeyboardEvent<HTMLDivElement>) => {
@@ -103,22 +120,37 @@ export const InputDiv: React.FC<InputDivProps> = ({
       return;
     }
     updateInput();
+    console.log('keyup', hasFocus, focusChar, value, divRef.current ? textNodes(divRef.current) : '--', textNodes(divRef.current).length)
   }
 
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    onKeyPress && onKeyPress(e);
+    if (!divRef.current) {
+      return;
+    }
+    // updateInput();
+  };
 
-  const placeholderClassName = divRef.current?.innerText ? moduleStyles.inputDiv : moduleStyles.emptyInputDiv
 
+
+  const dontShowPlaceholder = !!value || hasFocus;
+
+  const placeholderClassName = dontShowPlaceholder ? moduleStyles.inputDiv : moduleStyles.emptyInputDiv
+  // console.log('dontShowPlaceholder', dontShowPlaceholder, value, hasFocus, divRef.current?.innerText)
 
   return (
       <div
         ref={divRef}
         contentEditable={!disabled}
         data-placeholder={placeholder}
-        className={`h-full w-full border-none ${!value ? 'empty' : ''} ${className} ${placeholderClassName}`}
+        className={`h-full w-full border-none  ${placeholderClassName} ${className}`}
         style={{
           ...moduleStyles,
           ...style,
-          position: 'relative'
+          position: 'relative',
+          wordWrap: 'break-word',
+          maxWidth: '100%',
+          display: 'inline-flex'
         }}
         onInput={updateInput}
         onFocus={handleFocus}
@@ -126,6 +158,7 @@ export const InputDiv: React.FC<InputDivProps> = ({
         onClick={onClick}
         onKeyDown={handleKeyDown}
         onKeyUp={handleKeyUp}
+        // onInputCapture={updateInput}
         // onMouseUp={handleMouseUp}
         suppressContentEditableWarning={true}
         tabIndex={0}
@@ -137,6 +170,20 @@ export const InputDiv: React.FC<InputDivProps> = ({
 
 export default InputDiv;
 
+
+const textNodes = (divElement: HTMLDivElement) => {
+  const iterator = document.createNodeIterator(
+    divElement,
+    NodeFilter.SHOW_TEXT,
+    null,
+  );
+  const list = [];
+  for (let node = iterator.nextNode(); node; node = iterator.nextNode()) {
+    console.log(node.textContent);
+    list.push(node);
+  }
+  return list
+}
 
 
 const getCursorPosition = (divElement: HTMLDivElement) => {

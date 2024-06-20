@@ -9,6 +9,7 @@ import fosDocument from './document'
 import resources from './resources'
 import { FosReactOptions } from '..'
 import { IFosNode } from '@fosforescent/fosforescent-js'
+import { TrellisMeta } from '@syctech/react-trellis'
 
 const fosModules = {
   // cost,
@@ -24,6 +25,7 @@ const moduleNames = Object.keys(fosModules)
 type ModuleProps = {
   node: IFosNode
   options: FosReactOptions
+  meta: TrellisMeta<IFosNode, FosReactOptions | undefined>
 }
 
 type FosModule = {

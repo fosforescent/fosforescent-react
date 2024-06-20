@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button"
 import CurrencyInput from "react-currency-input-field"
 import * as SliderPrimitive from "@radix-ui/react-slider"
 import { cn } from "@/lib/utils"
-import { SelectionPath, IFosNode } from "@fosforescent/fosforescent-js"
+import { SelectionPath, IFosNode, FosDataContent } from "@fosforescent/fosforescent-js"
 import { suggestRecursive } from "@/lib/suggestRecursive"
 import { FosReactOptions } from ".."
 
@@ -42,26 +42,28 @@ const ResourceComponent = ({ node, options }: { node: IFosNode, options: FosReac
     
   const handleSuggestCost = async () => {
     if (options?.canPromptGPT && options?.promptGPT){
-      const newContext = await suggestRecursive(options.promptGPT, node, {
-        systemPromptBase,
-        getUserPromptBase,
-        systemPromptRecursive,
-        getUserPromptRecursive,
-        pattern,
-        parsePattern,
-        getResourceInfo: getCostInfo,
-        setResourceInfo: setCostInfo,
-        checkResourceInfo: checkCostInfo
-      } )
-      if (newContext){
-        node.context.setNodes(newContext.data.nodes)
-      }else{
+      try {
+        await suggestRecursive(options.promptGPT, node, {
+          systemPromptBase,
+          getUserPromptBase,
+          systemPromptRecursive,
+          getUserPromptRecursive,
+          pattern,
+          parsePattern,
+          getResourceInfo: getCostInfo,
+          setResourceInfo: setCostInfo,
+          checkResourceInfo: checkCostInfo
+        } )
+  
+      } catch (error) {
+        console.error('error', error)
         options?.toast && options?.toast({
           title: 'Error',
-          description: 'No suggestions could be generated',
+          description: 'No suggestions could be generated: ' + error,
           duration: 5000,
         })
       }
+
     } else {
       console.error('No authedApi')
       const err =  new Error('No authedApi')
@@ -80,11 +82,11 @@ const ResourceComponent = ({ node, options }: { node: IFosNode, options: FosReac
 
   
   const handleMinCostPath = async () => {
-    const newContext = node.setPath({ [node.getNodeData().selectedOption]: costInfo.minPaths })
+    // const newContext = node.setPath({ [node.getNodeData().selectedOption]: costInfo.minPaths })
   }
   
   const handleMaxCostPath = async () => {
-    const newContext = node.setPath({ [node.getNodeData().selectedOption]:  costInfo.maxPaths})
+    // const newContext = node.setPath({ [node.getNodeData().selectedOption]:  costInfo.maxPaths})
   }
   
   
@@ -110,18 +112,20 @@ const ResourceComponent = ({ node, options }: { node: IFosNode, options: FosReac
 
 export const setCostInfo = (node:IFosNode, { marginal, budget} : { marginal: number, budget?: { available: number } }) => {
   const nodeData = node.getData()
-  const newNodeData = {
-    ...nodeData,
-    cost: { 
-      marginal,
-      budget
-    }
+  const newCostData: FosDataContent["cost"] = {
+    plannedMarginal: marginal,
+    budget,
+    entries: []
   }
-  return node.setData(newNodeData)
+  return node.setData({
+    ...nodeData,
+    cost: newCostData
+  })
 }
 
 export const getCostInfo = (thisNode: IFosNode, index?: number): CostInfo => {
-  const indexToGet = thisNode.parseIndex(index)
+  throw new Error('Not implemented')
+  // const indexToGet = thisNode.parseIndex(index)
   // get selected option
 
   // for each child
@@ -135,79 +139,79 @@ export const getCostInfo = (thisNode: IFosNode, index?: number): CostInfo => {
 
 
     
-  const children = thisNode.getChildren(indexToGet)
+  // const children = thisNode.getChildren(indexToGet)
 
-  const thisNodeOptionContent = thisNode.getOptionContent(indexToGet)
+  // const thisNodeOptionContent = thisNode.getOptionContent(indexToGet)
 
-  const thisNodeCost = thisNodeOptionContent.data?.cost?.marginal || 0
-
-
+  // const thisNodeCost = thisNodeOptionContent.data?.cost?.marginal || 0
 
 
-  if (children.length === 0){
-    return {
-      min: thisNodeCost,
-      max: thisNodeCost,
-      average: thisNodeCost,
-      current: thisNodeCost,
-      minPaths: [],
-      maxPaths: [],
-      marginal: thisNodeCost
-    }
-  } else {
 
-    let min = 0
-    let max = 0
-    let average = 0
-    let current = 0
-    const minPaths: CostInfo["minPaths"] = []
-    const maxPaths: CostInfo["maxPaths"] = []
 
-    children.forEach((child, i) => {
-      const childData = child.getNodeData()
-      const childOptions = childData.options
+  // if (children.length === 0){
+  //   return {
+  //     min: thisNodeCost,
+  //     max: thisNodeCost,
+  //     average: thisNodeCost,
+  //     current: thisNodeCost,
+  //     minPaths: [],
+  //     maxPaths: [],
+  //     marginal: thisNodeCost
+  //   }
+  // } else {
+
+  //   let min = 0
+  //   let max = 0
+  //   let average = 0
+  //   let current = 0
+  //   const minPaths: CostInfo["minPaths"] = []
+  //   const maxPaths: CostInfo["maxPaths"] = []
+
+  //   children.forEach((child, i) => {
+  //     const childData = child.getNodeData()
+  //     const childOptions = childData.options
 
   
-      let minOptionCost = Number.MAX_SAFE_INTEGER;
-      let maxOptionCost = Number.MIN_SAFE_INTEGER;
-      const minOptionPaths: SelectionPath = {};
-      const maxOptionPaths: SelectionPath = {};
-      let avgOptionCost = 0;
-      let currentOptionCost = 0;
+  //     let minOptionCost = Number.MAX_SAFE_INTEGER;
+  //     let maxOptionCost = Number.MIN_SAFE_INTEGER;
+  //     const minOptionPaths: SelectionPath = {};
+  //     const maxOptionPaths: SelectionPath = {};
+  //     let avgOptionCost = 0;
+  //     let currentOptionCost = 0;
 
-      childOptions.forEach( (option, j) => {
-        const childOptionCostInfo = getCostInfo(child, j)
-        if (childOptionCostInfo.min < minOptionCost){
-          minOptionCost = childOptionCostInfo.min
-          minOptionPaths[j] = childOptionCostInfo.minPaths
-        }
-        if (childOptionCostInfo.max > maxOptionCost){
-          maxOptionCost = childOptionCostInfo.max
-          maxOptionPaths[j] = childOptionCostInfo.maxPaths
-        }
-        avgOptionCost = ((avgOptionCost * j) + childOptionCostInfo.average) / (j + 1)
-        if (j === childData.selectedOption){
-          currentOptionCost = childOptionCostInfo.current
-        }
-      })
-      min += minOptionCost
-      max += maxOptionCost
-      average += avgOptionCost 
-      current += currentOptionCost
-    });
+  //     childOptions.forEach( (option, j) => {
+  //       const childOptionCostInfo = getCostInfo(child, j)
+  //       if (childOptionCostInfo.min < minOptionCost){
+  //         minOptionCost = childOptionCostInfo.min
+  //         minOptionPaths[j] = childOptionCostInfo.minPaths
+  //       }
+  //       if (childOptionCostInfo.max > maxOptionCost){
+  //         maxOptionCost = childOptionCostInfo.max
+  //         maxOptionPaths[j] = childOptionCostInfo.maxPaths
+  //       }
+  //       avgOptionCost = ((avgOptionCost * j) + childOptionCostInfo.average) / (j + 1)
+  //       if (j === childData.selectedOption){
+  //         currentOptionCost = childOptionCostInfo.current
+  //       }
+  //     })
+  //     min += minOptionCost
+  //     max += maxOptionCost
+  //     average += avgOptionCost 
+  //     current += currentOptionCost
+  //   });
 
-    return {
-      min: min + thisNodeCost,
-      max: max + thisNodeCost,
-      average: average + thisNodeCost,
-      current: current + thisNodeCost,
-      minPaths: minPaths,
-      maxPaths: maxPaths,
-      marginal: thisNodeCost
-    }
+  //   return {
+  //     min: min + thisNodeCost,
+  //     max: max + thisNodeCost,
+  //     average: average + thisNodeCost,
+  //     current: current + thisNodeCost,
+  //     minPaths: minPaths,
+  //     maxPaths: maxPaths,
+  //     marginal: thisNodeCost
+  //   }
 
     
-  }
+  // }
 
 
 }

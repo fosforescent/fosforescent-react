@@ -37,13 +37,12 @@ export const RootScreenHead: TrellisComponents<IFosNode, FosReactOptions | undef
   }
 
 
-  const activeModule = global.activeModule
 
   const setActiveModule = (module: FosModule | undefined) => {
+    console.log('setActiveModule', module, global)
     global?.setActiveModule && global.setActiveModule(module)
   }
 
-  const availableModules = global?.modules
 
   const handleAllActionsButtonClick = () => {
     if (showAllActions) {
@@ -59,20 +58,31 @@ export const RootScreenHead: TrellisComponents<IFosNode, FosReactOptions | undef
 
 
   const handleModuleClick = (module: FosModule) => {
+    console.log('handleModuleClick', module)
     setActiveModule(module)
     setShowAllActions(false)
   }
 
+
+
+  const isRoot = !node.getParent()
+
+  
+  const activeModule = isRoot ? undefined : global.activeModule
+
+
+  const availableModules = isRoot ? global?.modules?.filter((mod) => mod.name !== "workflow") : global?.modules
+
   const HeadComponent = activeModule?.HeadComponent || (() => <></>)
 
-  // console.log('activeModule', activeModule, availableModules)
+  console.log('activeModule', activeModule, availableModules, global)
 
   return (<>
     <div>
       <div>
         <div className={`flex-row flex w-full px-1 `}>
           <div className={`px-0 flex-grow overflow-x-hidden transition-all duration-500 ${showAllActions ? 'w-none' : ''}`}>
-            <HeadComponent node={node} options={global} />
+            <HeadComponent node={node} options={global} meta={meta} />
           </div>
           <div className={`px-3 flex flex-row w-auto transition-all duration-500 items-stretch`}>
   

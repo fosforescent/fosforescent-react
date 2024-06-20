@@ -2,7 +2,7 @@ import React from 'react'
 import {Meta, StoryFn} from "@storybook/react";
 import Main, { FosReactOptions }  from './components/fos/index'
 
-import initialFosData, { defaultNodesDemo } from './components/fos/initialData';
+import { defaultNodesDemo, defaultContext } from './components/fos/initialData';
 
 export default {
   // component: div,
@@ -26,7 +26,7 @@ const Template: StoryFn<TplProps> = (args: any) => {
   // const fos = useFos(options)
   // const interpreter = fos.createTransaction()
 
-  const [data, setData] = React.useState<any>(initialFosData)
+  const [data, setData] = React.useState<any>(defaultContext)
 
   return (
     <div>

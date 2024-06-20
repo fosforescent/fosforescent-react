@@ -4,7 +4,7 @@ import React, { useEffect, useRef, useState, DetailedHTMLProps, HTMLAttributes }
 
 
 import { FosModule } from './fosModules';
-import { SelectionPath, FosNode } from "@fosforescent/fosforescent-js"
+import { SelectionPath, IFosNode, FosDataContent } from "@fosforescent/fosforescent-js"
 import { Button } from '@/components/ui/button';
 import { suggestRecursive } from '@/lib/suggestRecursive';
 import { parse } from 'path';
@@ -180,7 +180,7 @@ export const DurationInput = ({
 
 
 
-const ResourceComponent = ({ node, options }: { node: FosNode, options: FosReactOptions}) => {
+const ResourceComponent = ({ node, options }: { node: IFosNode, options: FosReactOptions}) => {
 
 
 
@@ -190,18 +190,18 @@ const ResourceComponent = ({ node, options }: { node: FosNode, options: FosReact
   const durationInfo = getDurationInfo(node)
 
 
-  const handleDurationEdit = (value: {
-    marginal: number
-  }) => {
+  const handleDurationEdit = (value: DurationData) => {
     setDurationInfo(node, value)
   }
   
   const handleMinDurationPath = async () => {
-    const newContext = node.setPath({ [node.getNodeData().selectedOption]: durationInfo.minPaths })
+
+
+    // const newContext = node({ [node.getData().option?.selectedIndex || 0]: durationInfo.minPaths })
   }
   
   const handleMaxDurationPath = async () => {
-    const newContext = node.setPath({ [node.getNodeData().selectedOption]: durationInfo.maxPaths })
+    // const newContext = node.setPath({ [node.getNodeData().selectedOption]: durationInfo.maxPaths })
   }
   
 
@@ -209,14 +209,14 @@ const ResourceComponent = ({ node, options }: { node: FosNode, options: FosReact
 
 
   const systemPromptBase = `Take a deep breath.  Please respond only with a single valid JSON object with the optional keys "milliseconds", "seconds", "minutes", "hours", "days", "weeks", "months", or "years" and a number value`
-  const getUserPromptBase = (thisDescription: string, parentDescriptions: string[], node: FosNode) => `How long does it take to ${thisDescription} in the as a subtask of ${parentDescriptions.join(' subtask of the task ')} please express in terms of milliseconds, seconds, minutes, hours, days, weeks, months, or years.`
+  const getUserPromptBase = (thisDescription: string, parentDescriptions: string[], node: IFosNode) => `How long does it take to ${thisDescription} in the as a subtask of ${parentDescriptions.join(' subtask of the task ')} please express in terms of milliseconds, seconds, minutes, hours, days, weeks, months, or years.`
   const systemPromptRecursive = `Take a deep breath.  Please respond only with a single valid JSON object with the optional keys "milliseconds", "seconds", "minutes", "hours", "days", "weeks", "months", or "years" and a number value`
-  const getUserPromptRecursive = (thisDescription: string, parentDescriptions: string[], node: FosNode) => {
+  const getUserPromptRecursive = (thisDescription: string, parentDescriptions: string[], node: IFosNode) => {
     const resourceInfo = getDurationInfo(node)
     return `How long does it take to ${thisDescription} in the as a subtask of ${parentDescriptions.join(' subtask of the task ')} please express in terms of milliseconds, seconds, minutes, hours, days, weeks, months, or years., but factoring out the time of its subtasks, which are estimated to take somewhere between ${resourceInfo.min} and ${resourceInfo.max}, averaging ${resourceInfo.average}. This will leave only the marginal time, which is the information we want.`
   }
   const pattern = /.*(\{[^{}]*\}).*/m
-  const parsePattern = (result: any, node: FosNode): DurationData => {
+  const parsePattern = (result: any, node: IFosNode): DurationData => {
 
     console.log('parsePattern', result)
 
@@ -233,33 +233,35 @@ const ResourceComponent = ({ node, options }: { node: FosNode, options: FosReact
 
   
     
-    return { marginal: durationToMs(resultParsed) } 
+    return { plannedMarginal: durationToMs(resultParsed), entries: [] } 
   } 
 
 
 
   const handleSuggestDuration = async () => {
     if (options?.canPromptGPT && options?.promptGPT){
-      const newContext = await suggestRecursive(options.promptGPT, node, {
-        systemPromptBase,
-        getUserPromptBase,
-        systemPromptRecursive,
-        getUserPromptRecursive,
-        pattern,
-        parsePattern,
-        getResourceInfo: getDurationInfo,
-        setResourceInfo: setDurationInfo,
-        checkResourceInfo: checkDurationInfo,
-      } )
-      if (newContext){
-        node.context.setNodes(newContext.data.nodes)
-      }else{
+      try {
+        await suggestRecursive(options.promptGPT, node, {
+          systemPromptBase,
+          getUserPromptBase,
+          systemPromptRecursive,
+          getUserPromptRecursive,
+          pattern,
+          parsePattern,
+          getResourceInfo: getDurationInfo,
+          setResourceInfo: setDurationInfo,
+          checkResourceInfo: checkDurationInfo,
+        } )
+  
+      } catch (err) {
         options?.toast && options.toast({
           title: 'Error',
-          description: 'No suggestions could be generated',
+          description: `No suggestions could be generated: ${err}`,
           duration: 5000,
         })
+  
       }
+
     } else {
       console.error('No authedApi')
       const err =  new Error('No authedApi')
@@ -272,7 +274,7 @@ const ResourceComponent = ({ node, options }: { node: FosNode, options: FosReact
   return (<div className='w-full text-center overflow-hidden'>
   <div className='mx-auto items-center justify-center gap-1.5 flex items-center'>
     <Button variant={"secondary"} className='bg-emerald-900 inline-block w-14' onClick={handleSuggestDuration} title="Get estimated duration"><BrainCircuit /></Button>
-    <DurationInput value={durationInfo.marginal} onUpdate={(value) => handleDurationEdit({marginal: value})} className='' style={{
+    <DurationInput value={durationInfo.marginal} onUpdate={(value) => handleDurationEdit({ plannedMarginal: value, entries: []})} className='' style={{
       width: 'calc(100% - 4rem)',
       maxWidth: '600px',
       display: 'inline-block',
@@ -298,109 +300,95 @@ const ResourceComponent = ({ node, options }: { node: FosNode, options: FosReact
 
 
 
-type DurationData = {
-  marginal: number,
-}
+type DurationData = FosDataContent["duration"]
+
 
 type DurationInfo = {
   min: number,
   max: number,
   average: number,
   current: number,
-  minPaths: SelectionPath[],
-  maxPaths: SelectionPath[],
+  minPaths: SelectionPath,
+  maxPaths: SelectionPath,
   marginal: number
 }
 
-export const getDurationInfo = (thisNode: FosNode, index?: number): DurationInfo => {
-  const indexToGet = thisNode.parseIndex(index)
-  // get selected option
-
-  // for each child
-    // get min (+ marginal)
-    // get max (+ marginal)
-    // get avg (+ marginal)
-    // get current (+ marginal)
-    // get min paths
-    // get max paths
-  
+export const getDurationInfo = (thisNode: IFosNode): DurationInfo => {
 
 
     
-  const children = thisNode.getChildren(indexToGet)
-
-  const thisNodeOptionContent = thisNode.getOptionContent(indexToGet)
-
-  const thisNodeDuration = thisNodeOptionContent.data?.duration?.marginal || 0
+  const children = thisNode.getChildren()
 
 
+  const reduceTaskDurations = (acc: DurationInfo, child: IFosNode, i: number): DurationInfo => {
+        
+    const childDurationInfo = getDurationInfo(child)
+    const childId = child.getId()
 
-
-  if (children.length === 0){
-    return {
-      min: thisNodeDuration,
-      max: thisNodeDuration,
-      average: thisNodeDuration,
-      current: thisNodeDuration,
-      minPaths: [],
-      maxPaths: [],
-      marginal: thisNodeDuration
+    const result: DurationInfo = {
+      min: acc.min + childDurationInfo.min,
+      max: acc.max + childDurationInfo.max,
+      average: acc.average + childDurationInfo.average,
+      current: acc.current + childDurationInfo.current,
+      minPaths: {...acc.minPaths, [childId]: childDurationInfo.minPaths},
+      maxPaths: {...acc.maxPaths, [childId]: childDurationInfo.maxPaths},
+      marginal: acc.marginal
     }
-  } else {
-
-    let min = 0
-    let max = 0
-    let average = 0
-    let current = 0
-    const minPaths: DurationInfo["minPaths"] = []
-    const maxPaths: DurationInfo["maxPaths"] = []
-
-    children.forEach((child, i) => {
-      const childData = child.getNodeData()
-      const childOptions = childData.options
-
-  
-      let minOptionDuration = Number.MAX_SAFE_INTEGER;
-      let maxOptionDuration = Number.MIN_SAFE_INTEGER;
-      const minOptionPaths: SelectionPath = {};
-      const maxOptionPaths: SelectionPath = {};
-      let avgOptionDuration = 0;
-      let currentOptionDuration = 0;
-
-      childOptions.forEach( (option, j) => {
-        const childOptionDurationInfo = getDurationInfo(child, j)
-        if (childOptionDurationInfo.min < minOptionDuration){
-          minOptionDuration = childOptionDurationInfo.min
-          minOptionPaths[j] = childOptionDurationInfo.minPaths
-        }
-        if (childOptionDurationInfo.max > maxOptionDuration){
-          maxOptionDuration = childOptionDurationInfo.max
-          maxOptionPaths[j] = childOptionDurationInfo.maxPaths
-        }
-        avgOptionDuration = ((avgOptionDuration * j) + childOptionDurationInfo.average) / (j + 1)
-        if (j === childData.selectedOption){
-          currentOptionDuration = childOptionDurationInfo.current
-        }
-      })
-      min += minOptionDuration
-      max += maxOptionDuration
-      average += avgOptionDuration 
-      current += currentOptionDuration
-    });
-
-    return {
-      min: min + thisNodeDuration,
-      max: max + thisNodeDuration,
-      average: average + thisNodeDuration,
-      current: current + thisNodeDuration,
-      minPaths: minPaths,
-      maxPaths: maxPaths,
-      marginal: thisNodeDuration
-    }
-
-    
+    return result
   }
 
+  const reduceOptionDurations = (acc: DurationInfo, child: IFosNode, i: number): DurationInfo => {
+
+    const childDurationInfo = getDurationInfo(child)
+
+    const newAvg = ( ( acc.average * i ) + childDurationInfo.average ) / ( i + 1 )
+
+    const isSelected = (thisNode.getData().option?.selectedIndex || 0) === i
+
+    const isMin = acc.min > childDurationInfo.min
+    const isMax = acc.max < childDurationInfo.max
+
+
+    const childId = child.getId()
+
+    return {
+      min: acc.min > childDurationInfo.min ? childDurationInfo.min : acc.min,
+      max: acc.max > childDurationInfo.max ? acc.max : childDurationInfo.max,
+      average: newAvg,
+      current: isSelected ? childDurationInfo.current : acc.current,
+      minPaths: isMin ? { [childId] : childDurationInfo.minPaths } : acc.minPaths,
+      maxPaths: isMax ? { [childId] : childDurationInfo.maxPaths } : acc.maxPaths,
+      marginal: acc.marginal
+    }
+
+  }
+
+  const thisNodeDuration = thisNode.getData().duration?.plannedMarginal
+
+  const thisType = thisNode.getNodeType()
+
+  const reduceFunction: undefined | ((acc: DurationInfo, child: IFosNode, i: number) => DurationInfo) = {
+    task: reduceTaskDurations,
+    option: reduceOptionDurations
+  }[thisType]
+
+  if (!reduceFunction){
+    throw new Error(`Unsupported node type ${thisType}`)
+  }
+
+  const startVal: DurationInfo = {
+    min: children.length > 0 ? Number.MAX_SAFE_INTEGER : thisNodeDuration || 0,
+    max: thisNodeDuration || 0,
+    average: thisNodeDuration || 0,
+    current: thisNodeDuration || 0,
+    minPaths: {},
+    maxPaths: {},
+    marginal: thisNodeDuration || 0
+  }
+
+  const result: DurationInfo = children.reduce(reduceFunction, startVal)
+
+  return result
 
 }
 
@@ -409,17 +397,22 @@ export const getDurationInfo = (thisNode: FosNode, index?: number): DurationInfo
 
 
 
-export const setDurationInfo = (node: FosNode, value: DurationData) => {
+export const setDurationInfo = (node: IFosNode, value: DurationData) => {
   const nodeData = node.getData()
 
-  return node.setData({
-    ...nodeData,
-    duration: value
-  })
+  if (value){
+    node.setData({
+      ...nodeData,
+      duration: {
+        ...nodeData.duration,
+        ...(value || {})
+      } 
+    })  
+  }
 
 }
 
-export const checkDurationInfo = (node: FosNode) => {
+export const checkDurationInfo = (node: IFosNode) => {
   const nodeData = node.getData()
   return !!nodeData.duration
 }

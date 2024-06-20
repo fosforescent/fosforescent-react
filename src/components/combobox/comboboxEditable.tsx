@@ -24,6 +24,8 @@ import { Button } from "../ui/button"
 
 import { InputDiv } from './inputDiv'
 
+
+
 export function ComboboxEditable({
   values,
   searchMessage = "Search...",
@@ -38,18 +40,17 @@ export function ComboboxEditable({
   handleChange,
   deleteOption,
   addOption,
-  toggleCollapse,
   suggestOption,
-  keyDown,
-  keyPresses,
+  onKeyDown,
+  onKeyUp,
   locked,
   hasFocus,
   focusChar,
-  getFocus,
+  // getFocus,
   ...props
 }: {
   values: {value: string, label: string}[],
-  getFocus: (char: number | null) => void,
+  // getFocus: (char: number | null) => void,
   emptyMessage?: string,
   selectMessage?: string,
   searchMessage?: string,
@@ -62,14 +63,13 @@ export function ComboboxEditable({
   draggingOn?: boolean,
   addOption: () => void,
   deleteOption: (index:number) => void,
-  toggleCollapse: () => void,
   suggestOption: () => void,
-  keyDown: (e: React.KeyboardEvent<HTMLDivElement>) => void,
-  keyPresses: (e: React.KeyboardEvent<HTMLDivElement>) => void,
+  onKeyDown: (e: React.KeyboardEvent<HTMLDivElement>) => void,
+  onKeyUp: (e: React.KeyboardEvent<HTMLDivElement>) => void,
   hasFocus: boolean,
   focusChar: number | null,
   locked: boolean,
-} & React.HTMLAttributes<HTMLButtonElement>) {
+} & React.HTMLAttributes<HTMLDivElement>) {
 
   const [open, setOpen] = React.useState(false)
   const [value, setValue] = React.useState(defaultValue)
@@ -124,7 +124,7 @@ export function ComboboxEditable({
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
+      <PopoverTrigger asChild className="w-full">
 
       <div style={{
           position: 'relative',
@@ -137,14 +137,14 @@ export function ComboboxEditable({
           width: 'calc(100% - 2rem)',
         }}
         role="combobox"
-        className={` `}
+        className={`grow w-full`}
         >
           <InputDiv
           disabled={locked}
-          autoFocus={hasFocus}
-          getFocus={getFocus}
+          shouldFocus={hasFocus}
+          // getFocus={getFocus}
           placeholder={values.length > 1 ? "New Option" : "Enter a task to plan"}
-          className="rounded-r-none w-full cursor-text"
+          className="rounded-r-none w-full cursor-text justify-self-stretch"
           value={value
             ? values.find((item) => item.value === value)?.label || ""
             : selectMessage} 
@@ -159,8 +159,8 @@ export function ComboboxEditable({
           }}
           onChange={onTextChange}
           onClick={(e) => { /* console.log("here"); */ e.stopPropagation()}}
-          onKeyDown={keyDown}
-          onKeyUp={keyPresses}
+          onKeyDown={onKeyDown}
+          onKeyUp={onKeyUp}
           focusChar={focusChar}
           />
           <div className="flex w-5 justify-center items-center flex p-0"

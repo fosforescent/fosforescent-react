@@ -2,26 +2,28 @@ import { ComboboxOptions } from "@/components/combobox/comboboxOptions"
 import { Button } from "@/components/ui/button"
 import { PenBox } from "lucide-react"
 
-import { SelectionPath, FosNode } from "@fosforescent/fosforescent-js"
+import { SelectionPath, IFosNode } from "@fosforescent/fosforescent-js"
 import { suggestOption } from "@/lib/suggestOption"
 import { FosModule } from "./fosModules"
 import { FosReactOptions } from ".."
+import { InputDiv } from "@/components/combobox/inputDiv"
+import { TrellisMeta } from "@syctech/react-trellis"
 
-const ResourceComponent = ({ node, options }: { node: FosNode, options: FosReactOptions }) => {
+const ResourceComponent = ({ node, options, meta }: { node: IFosNode, options: FosReactOptions, meta: TrellisMeta<IFosNode, FosReactOptions | undefined> }) => {
 
 
   
   const handleSuggestOption = async () => {
     if (options?.canPromptGPT && options?.promptGPT){
-      const [newContext, newSubscriptionData] = await suggestOption(options.promptGPT, node)
-      if (newContext){
-        node.context.setNodes(newContext.data.nodes)
-      }else{
+      try {
+        await suggestOption(options.promptGPT, node)
+      } catch (err) {
         options?.toast && options.toast({
           title: 'Error',
-          description: 'No suggestions could be generated',
+          description: `No suggestions could be generated: ${err}`,
           duration: 5000,
         })
+
       }
     } else {
       console.error('No authedApi')
@@ -30,10 +32,28 @@ const ResourceComponent = ({ node, options }: { node: FosNode, options: FosReact
       throw err
     }
   }
-  
 
+  const thisType = node.getNodeType()
+
+  const value = node.getData().description?.content || ""
+
+  const handleTextChange = (value: string, focusChar: number | null) => {
+    node.setData({
+      description: {
+        content: value,
+      }
+    })
+    meta.trellisNode.setFocus(focusChar)
+
+  }
+  
   return (<div>
-    <ComboboxOptions node={node} suggestOption={handleSuggestOption} canSuggestOption={options?.canPromptGPT || false} />
+    {<InputDiv
+      value={value}
+      onChange={handleTextChange}
+      placeholder="Task description"
+      
+    />}
   </div>)
 }
 
