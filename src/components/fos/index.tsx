@@ -21,7 +21,6 @@ import { suggestOption } from '@/lib/suggestOption'
 import { suggestSteps } from '@/lib/suggestSteps'
 import { suggestMagic } from '@/lib/suggestMagic'
 import { FosWrapper } from './fosWrapper'
-import { FosRowComponent } from './row'
 import { FosRowsComponent } from './rows'
 
 
