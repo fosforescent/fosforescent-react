@@ -20,9 +20,9 @@ const Template: StoryFn<TplProps> = (args: any) => {
 
   // const forceUpdate = () => setCt(ct + 1)
 
-  const options: FosReactOptions & { mock?: boolean } = {
-    mock: true,
-  }
+  // const options: FosReactOptions & { mock?: boolean } = {
+  //   mock: true,
+  // }
   // const fos = useFos(options)
   // const interpreter = fos.createTransaction()
 
