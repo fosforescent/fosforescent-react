@@ -1,7 +1,6 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import Main, { FosContextData } from '.'
-import { FosModule, fosModules } from './components/fos/modules/fosModules'
 
 
 import './global.css'
