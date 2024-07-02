@@ -32,7 +32,7 @@ const Template: StoryFn<TplProps> = (args: any) => {
     <div>
       {args.workflowName}
       {/* <Main interpreter={interpreter} /> */}
-      <Main data={data} setData={setData} />
+      {/* <Main data={data} setData={setData} /> */}
     </div>
     // <WorkflowComponent node={node} edge={view} path={[[view, node]]} forceUpdate={forceUpdate} />
   )
