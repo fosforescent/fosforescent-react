@@ -5,7 +5,6 @@ import { Preview } from '@storybook/react';
 
 window.React = React
 
-import { ThemeProvider } from '../src/components/theme-provider';
 
 const preview: Preview = {
   parameters: {
@@ -22,10 +21,7 @@ const preview: Preview = {
       console.log('globals', globals)
 
       return (
-      <ThemeProvider defaultTheme={globals.theme} storageKey="vite-ui-theme">
-        {/* 👇 Decorators in Storybook also accept a function. Replace <Story/> with Story() to enable it  */}
         <Story />
-      </ThemeProvider>
     )},
   ],
   globalTypes: {
