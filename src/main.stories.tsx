@@ -1,8 +1,8 @@
 import React from 'react'
 import {Meta, StoryFn} from "@storybook/react";
-import Main, { FosReactOptions }  from './components/fos/index'
+// import Main, { FosReactOptions }  from './components/fos/index'
 
-import initialFosData, { defaultNodesDemo } from './components/fos/initialData';
+import { defaultNodesDemo, defaultContext } from './components/fos/initialData';
 
 export default {
   // component: div,
@@ -20,19 +20,19 @@ const Template: StoryFn<TplProps> = (args: any) => {
 
   // const forceUpdate = () => setCt(ct + 1)
 
-  const options: FosReactOptions & { mock?: boolean } = {
-    mock: true,
-  }
+  // const options: FosReactOptions & { mock?: boolean } = {
+  //   mock: true,
+  // }
   // const fos = useFos(options)
   // const interpreter = fos.createTransaction()
 
-  const [data, setData] = React.useState<any>(initialFosData)
+  const [data, setData] = React.useState<any>(defaultContext)
 
   return (
     <div>
       {args.workflowName}
       {/* <Main interpreter={interpreter} /> */}
-      <Main data={data} setData={setData} />
+      {/* <Main data={data} setData={setData} /> */}
     </div>
     // <WorkflowComponent node={node} edge={view} path={[[view, node]]} forceUpdate={forceUpdate} />
   )

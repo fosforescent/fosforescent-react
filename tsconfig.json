@@ -38,10 +38,13 @@
   "include": [
     "**/*.ts",
     "**/*.tsx",
+    "../../**/*.ts",
     "declarations.d.ts",
     "lib/**/*.d.ts",
-    "lib/dnd/multi-backend.js"
-, "../vite.config.ts"  ],
+    "lib/dnd/multi-backend.js",
+    "./../../syc/react-trellis/dist/types/index.d.ts", 
+    "./../../syc/react-trellis/dist/types/**/*",
+    "../vite.config.ts"  ],
   "exclude": [
     "node_modules",
     "src/components/fos-old/**/*",

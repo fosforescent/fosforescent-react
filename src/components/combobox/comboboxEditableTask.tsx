@@ -25,54 +25,47 @@ import { Button } from "../ui/button"
 
 import { InputDiv } from './inputDiv'
 
-
-
-export function ComboboxOptions({
+export function ComboboxEditableTask({
   values,
   searchMessage = "Search...",
   selectMessage = "Select...",
   emptyMessage = "No results",
   defaultValue,
   selectedIndex,
-  handleTextEdit,
   isDragging,
   draggingOver,
   draggingOn,
-  handleChange,
-  deleteOption,
+  handleTextEdit,
+  deleteRow,
   addOption,
-  suggestOption,
-  onKeyDown,
-  onKeyUp,
-  locked,
+  variant = "default",
   hasFocus,
   focusChar,
-  getFocus,
   setFocus,
+  suggestOption,
+  getFocus,
+  locked,
   ...props
 }: {
   values: {value: string, label: string}[],
-  // getFocus: (char: number | null) => void,
   emptyMessage?: string,
   selectMessage?: string,
   searchMessage?: string,
   defaultValue?: string,
   selectedIndex: number,
   handleTextEdit: (value: string, focusChar: number) => void,
-  handleChange: (value: string) => void,
   isDragging: boolean,
   draggingOver?: boolean,
   draggingOn?: boolean,
+  deleteRow: () => void,
   addOption: () => void,
-  deleteOption: (index:number) => void,
-  suggestOption: () => void,
-  onKeyDown: (e: React.KeyboardEvent<HTMLDivElement>) => void,
-  onKeyUp: (e: React.KeyboardEvent<HTMLDivElement>) => void,
-  hasFocus: boolean,
+  variant?: "default" | "text-mimic",
+  hasFocus?: boolean,
   focusChar: number | null,
-  locked: boolean,
-  getFocus: () => void,
   setFocus: (focusChar: number) => void,
+  getFocus: () => void,
+  suggestOption: () => void,
+  locked: boolean,
 } & React.HTMLAttributes<HTMLDivElement>) {
 
   const [open, setOpen] = React.useState(false)
@@ -88,28 +81,23 @@ export function ComboboxOptions({
     }
   }, [selectedIndex])
 
+  const classes = {
+    default: "w-[200px] ",
+    "text-mimic": "w-full  text-left display-flex",
+  }[variant]
 
-
-
-  const onTextChange = (value: string, cursorPos: number) => {
-    if (locked){
-      return
+  const buttonStyle = {
+    default: {},
+    "text-mimic": {
+      width: '70vw',
+      fontSize: '1rem',
+      fontWeight: 'normal',
+      paddingRight: '5px'
     }
-    handleTextEdit(value, cursorPos)
-    return false
-  }
+  }[variant]
 
+  const textValue = values.find((item) => item.value === value)?.label
 
-
-  const handleDeleteOption = (index: number) => {
-    if (locked){
-      return
-    }
-    // console.log('handleDeleteOption', index)
-    deleteOption(index)
-  }
-
- 
 
   const dropStyle = draggingOver ? {
     // backgroundColor: 'rgba(230, 220, 200, .03)',
@@ -121,6 +109,7 @@ export function ComboboxOptions({
     // transform: 'scale(1.05)',
   } : {}
 
+  
   // console.log('isDragging', isDragging, draggingOver, draggingOn)
 
   const draggingStyle = isDragging ? {
@@ -129,61 +118,61 @@ export function ComboboxOptions({
   } : {}
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+      <Popover open={open} onOpenChange={setOpen}>
     <div className="w-full grid grid-cols-[1fr,2rem]">
       <PopoverAnchor>
-        <InputDiv
-          disabled={locked}
-          shouldFocus={hasFocus}
-          placeholder={values.length > 1 ? "New Option" : "Enter a task to plan"}
-          className="rounded-r-none w-full cursor-text grow"
-          value={value
-            ? values.find((item) => item.value === value)?.label || ""
-            : selectMessage} 
-          style={{
-            width: 'calc(100% - 1.25rem)',
-            fontSize: '1rem',
-            fontWeight: 'normal',
-            height: 'auto',
-            // ...dropStyle,
-            // ...dropOnStyle,
-            ...draggingStyle,
-          }}
-          getFocus={getFocus}
-          onChange={onTextChange}
-          onClick={(e) => { /* console.log("here"); */ e.stopPropagation()}}
-          onKeyDown={onKeyDown}
-          onKeyUp={onKeyUp}
-          focusChar={focusChar}
+      <InputDiv
+        disabled={locked}
+        shouldFocus={hasFocus}
+        placeholder={values.length > 1 ? "New Option" : "Enter a task to plan"}
+        className="rounded-r-none w-full cursor-text grow"
+        // getFocus={getFocus}
+        value={value
+          ? values.find((item) => item.value === value)?.label || ""
+          : selectMessage} 
+        style={{
+          fontSize: '1rem',
+          fontWeight: 'normal',
+          height: 'auto',
+          // ...dropStyle,
+          // ...dropOnStyle,
+          ...draggingStyle,
+        }}
+        onChange={handleTextEdit}
+        onClick={(e) => { /* console.log("here"); */ e.stopPropagation()}}
+        onKeyDown={props.onKeyDown}
+        onKeyUp={props.onKeyUp}
+        focusChar={focusChar}
+        getFocus={getFocus}
         />
-      </PopoverAnchor>
-
+        </PopoverAnchor>
+        
         <PopoverTrigger asChild>
 
-        <div style={{
-            position: 'relative',
-            opacity: 1,
-            height: 'auto',
-            ...dropOnStyle,
-            ...dropStyle,
-          }}
-          role="combobox"
-          className={`w-full flex items-center justify-center`}
-          >
-
-            <div className="py-1 w-7 border flex items-center justify-center"
+          <div style={{
+              position: 'relative',
+              opacity: 1,
+              height: 'auto',
+              ...dropOnStyle,
+              ...dropStyle,
+              // width: 'calc(100% - 2rem)',
+            }}
+            role="combobox"
+            className={`w-full flex items-center justify-center`}
+  >
+            <div className="py-1 border"
             aria-expanded={open}>
-              <CaretSortIcon style={{
+              <PlusIcon className={`h-4 cursor-pointer`} style={{
                 padding: '0px 0px 0px 0px',
               }} />
             </div>
           </div>
         </PopoverTrigger>
-        <PopoverContent className="w-[200px] p-0">
+        <PopoverContent className="w-[200px] p-0 inset-x-1/2">
           <Command>
             {/* <CommandInput placeholder={searchMessage} className="h-9" /> */}
-            <CommandEmpty>{emptyMessage}</CommandEmpty>
-            <CommandGroup>
+            {/* <CommandEmpty>{emptyMessage}</CommandEmpty> */}
+            {/* <CommandGroup>
               {values.map((item, index) => (
                 <CommandItem
                   key={item.value}
@@ -213,7 +202,7 @@ export function ComboboxOptions({
                   </div>)}
                 </CommandItem>
               ))}
-            </CommandGroup>
+            </CommandGroup> */}
             <CommandGroup>
               <div  className="grid grid-cols-2 place-content-stretch gap-1">
                 <div className="">

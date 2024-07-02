@@ -1,34 +1,35 @@
 import { BrainCircuit, DollarSign } from "lucide-react"
-import { FosModule } from "./fosModules"
+import { FosDataModule, FosModuleProps } from "./fosModules"
 import { Button } from "@/components/ui/button"
 import CurrencyInput from "react-currency-input-field"
 import * as SliderPrimitive from "@radix-ui/react-slider"
 import { cn } from "@/lib/utils"
-import { SelectionPath, FosNode } from "@fosforescent/fosforescent-js"
+import { SelectionPath, IFosNode, FosDataContent } from "@fosforescent/fosforescent-js"
 import { suggestRecursive } from "@/lib/suggestRecursive"
 import { FosReactOptions } from ".."
+import { FosWrapper } from "../fosWrapper"
 
 
 
 
-const ResourceComponent = ({ node, options }: { node: FosNode, options: FosReactOptions }) => {
+const ResourceComponent = ({ node, options }: FosModuleProps) => {
 
 
 
-  const costInfo = getCostInfo(node)
+  const costInfo = getCostInfo(node.fosNode())
 
  
   
 
   const systemPromptBase = `Take a deep breath.  Please respond only with a single valid JSON object with the key "cost" and a number value`
-  const getUserPromptBase = (thisDescription: string, parentDescriptions: string[], node: FosNode) => `How much does it cost to ${thisDescription} in the as a subtask of ${parentDescriptions.join(' subtask of the task ')}`
+  const getUserPromptBase = (thisDescription: string, parentDescriptions: string[], node: IFosNode) => `How much does it cost to ${thisDescription} in the as a subtask of ${parentDescriptions.join(' subtask of the task ')}`
   const systemPromptRecursive = `Take a deep breath.  Please respond only with a single valid JSON object with the key "cost" and a number value`
-  const getUserPromptRecursive = (thisDescription: string, parentDescriptions: string[], node: FosNode) => {
+  const getUserPromptRecursive = (thisDescription: string, parentDescriptions: string[], node: IFosNode) => {
     const resourceInfo = getCostInfo(node)
     return `How much does it cost to ${thisDescription} in the as a subtask of ${parentDescriptions.join(' subtask of the task ')}, but factoring out the cost of its subtasks, which are estimated to cost somewhere between $${resourceInfo.min} and $${resourceInfo.max}, averaging $${resourceInfo.average}.  This will leave only the marginal cost, which is the information we want.`
   }
   const pattern = /.*(\{[^{}]*\}).*/m
-  const parsePattern = (result: any, node: FosNode): CostData => {
+  const parsePattern = (result: any, node: IFosNode): CostData => {
 
     const resultParsed = result as { cost: string }
 
@@ -42,26 +43,28 @@ const ResourceComponent = ({ node, options }: { node: FosNode, options: FosReact
     
   const handleSuggestCost = async () => {
     if (options?.canPromptGPT && options?.promptGPT){
-      const newContext = await suggestRecursive(options.promptGPT, node, {
-        systemPromptBase,
-        getUserPromptBase,
-        systemPromptRecursive,
-        getUserPromptRecursive,
-        pattern,
-        parsePattern,
-        getResourceInfo: getCostInfo,
-        setResourceInfo: setCostInfo,
-        checkResourceInfo: checkCostInfo
-      } )
-      if (newContext){
-        node.context.setNodes(newContext.data.nodes)
-      }else{
+      try {
+        await suggestRecursive(options.promptGPT, node.fosNode(), {
+          systemPromptBase,
+          getUserPromptBase,
+          systemPromptRecursive,
+          getUserPromptRecursive,
+          pattern,
+          parsePattern,
+          getResourceInfo: getCostInfo,
+          setResourceInfo: setCostInfo,
+          checkResourceInfo: checkCostInfo
+        } )
+  
+      } catch (error) {
+        console.error('error', error)
         options?.toast && options?.toast({
           title: 'Error',
-          description: 'No suggestions could be generated',
+          description: 'No suggestions could be generated: ' + error,
           duration: 5000,
         })
       }
+
     } else {
       console.error('No authedApi')
       const err =  new Error('No authedApi')
@@ -72,19 +75,19 @@ const ResourceComponent = ({ node, options }: { node: FosNode, options: FosReact
 
   const handleCostEdit = (value: number | undefined) => {
     if (!value) return
-    const costInfo = getCostInfo(node)
-    setCostInfo(node, { marginal: value, budget: costInfo.budget })
+    const costInfo = getCostInfo(node.fosNode())
+    setCostInfo(node.fosNode(), { marginal: value, budget: costInfo.budget })
   }
     
 
 
   
   const handleMinCostPath = async () => {
-    const newContext = node.setPath({ [node.getNodeData().selectedOption]: costInfo.minPaths })
+    // const newContext = node.setPath({ [node.getNodeData().selectedOption]: costInfo.minPaths })
   }
   
   const handleMaxCostPath = async () => {
-    const newContext = node.setPath({ [node.getNodeData().selectedOption]:  costInfo.maxPaths})
+    // const newContext = node.setPath({ [node.getNodeData().selectedOption]:  costInfo.maxPaths})
   }
   
   
@@ -108,20 +111,22 @@ const ResourceComponent = ({ node, options }: { node: FosNode, options: FosReact
 
 
 
-export const setCostInfo = (node:FosNode, { marginal, budget} : { marginal: number, budget?: { available: number } }) => {
+export const setCostInfo = (node:IFosNode, { marginal, budget} : { marginal: number, budget?: { available: number } }) => {
   const nodeData = node.getData()
-  const newNodeData = {
-    ...nodeData,
-    cost: { 
-      marginal,
-      budget
-    }
+  const newCostData: FosDataContent["cost"] = {
+    plannedMarginal: marginal,
+    budget,
+    entries: []
   }
-  return node.setData(newNodeData)
+  return node.setData({
+    ...nodeData,
+    cost: newCostData
+  })
 }
 
-export const getCostInfo = (thisNode: FosNode, index?: number): CostInfo => {
-  const indexToGet = thisNode.parseIndex(index)
+export const getCostInfo = (thisNode: IFosNode, index?: number): CostInfo => {
+  throw new Error('Not implemented')
+  // const indexToGet = thisNode.parseIndex(index)
   // get selected option
 
   // for each child
@@ -135,84 +140,84 @@ export const getCostInfo = (thisNode: FosNode, index?: number): CostInfo => {
 
 
     
-  const children = thisNode.getChildren(indexToGet)
+  // const children = thisNode.getChildren(indexToGet)
 
-  const thisNodeOptionContent = thisNode.getOptionContent(indexToGet)
+  // const thisNodeOptionContent = thisNode.getOptionContent(indexToGet)
 
-  const thisNodeCost = thisNodeOptionContent.data?.cost?.marginal || 0
-
-
+  // const thisNodeCost = thisNodeOptionContent.data?.cost?.marginal || 0
 
 
-  if (children.length === 0){
-    return {
-      min: thisNodeCost,
-      max: thisNodeCost,
-      average: thisNodeCost,
-      current: thisNodeCost,
-      minPaths: [],
-      maxPaths: [],
-      marginal: thisNodeCost
-    }
-  } else {
 
-    let min = 0
-    let max = 0
-    let average = 0
-    let current = 0
-    const minPaths: CostInfo["minPaths"] = []
-    const maxPaths: CostInfo["maxPaths"] = []
 
-    children.forEach((child, i) => {
-      const childData = child.getNodeData()
-      const childOptions = childData.options
+  // if (children.length === 0){
+  //   return {
+  //     min: thisNodeCost,
+  //     max: thisNodeCost,
+  //     average: thisNodeCost,
+  //     current: thisNodeCost,
+  //     minPaths: [],
+  //     maxPaths: [],
+  //     marginal: thisNodeCost
+  //   }
+  // } else {
+
+  //   let min = 0
+  //   let max = 0
+  //   let average = 0
+  //   let current = 0
+  //   const minPaths: CostInfo["minPaths"] = []
+  //   const maxPaths: CostInfo["maxPaths"] = []
+
+  //   children.forEach((child, i) => {
+  //     const childData = child.getNodeData()
+  //     const childOptions = childData.options
 
   
-      let minOptionCost = Number.MAX_SAFE_INTEGER;
-      let maxOptionCost = Number.MIN_SAFE_INTEGER;
-      const minOptionPaths: SelectionPath = {};
-      const maxOptionPaths: SelectionPath = {};
-      let avgOptionCost = 0;
-      let currentOptionCost = 0;
+  //     let minOptionCost = Number.MAX_SAFE_INTEGER;
+  //     let maxOptionCost = Number.MIN_SAFE_INTEGER;
+  //     const minOptionPaths: SelectionPath = {};
+  //     const maxOptionPaths: SelectionPath = {};
+  //     let avgOptionCost = 0;
+  //     let currentOptionCost = 0;
 
-      childOptions.forEach( (option, j) => {
-        const childOptionCostInfo = getCostInfo(child, j)
-        if (childOptionCostInfo.min < minOptionCost){
-          minOptionCost = childOptionCostInfo.min
-          minOptionPaths[j] = childOptionCostInfo.minPaths
-        }
-        if (childOptionCostInfo.max > maxOptionCost){
-          maxOptionCost = childOptionCostInfo.max
-          maxOptionPaths[j] = childOptionCostInfo.maxPaths
-        }
-        avgOptionCost = ((avgOptionCost * j) + childOptionCostInfo.average) / (j + 1)
-        if (j === childData.selectedOption){
-          currentOptionCost = childOptionCostInfo.current
-        }
-      })
-      min += minOptionCost
-      max += maxOptionCost
-      average += avgOptionCost 
-      current += currentOptionCost
-    });
+  //     childOptions.forEach( (option, j) => {
+  //       const childOptionCostInfo = getCostInfo(child, j)
+  //       if (childOptionCostInfo.min < minOptionCost){
+  //         minOptionCost = childOptionCostInfo.min
+  //         minOptionPaths[j] = childOptionCostInfo.minPaths
+  //       }
+  //       if (childOptionCostInfo.max > maxOptionCost){
+  //         maxOptionCost = childOptionCostInfo.max
+  //         maxOptionPaths[j] = childOptionCostInfo.maxPaths
+  //       }
+  //       avgOptionCost = ((avgOptionCost * j) + childOptionCostInfo.average) / (j + 1)
+  //       if (j === childData.selectedOption){
+  //         currentOptionCost = childOptionCostInfo.current
+  //       }
+  //     })
+  //     min += minOptionCost
+  //     max += maxOptionCost
+  //     average += avgOptionCost 
+  //     current += currentOptionCost
+  //   });
 
-    return {
-      min: min + thisNodeCost,
-      max: max + thisNodeCost,
-      average: average + thisNodeCost,
-      current: current + thisNodeCost,
-      minPaths: minPaths,
-      maxPaths: maxPaths,
-      marginal: thisNodeCost
-    }
+  //   return {
+  //     min: min + thisNodeCost,
+  //     max: max + thisNodeCost,
+  //     average: average + thisNodeCost,
+  //     current: current + thisNodeCost,
+  //     minPaths: minPaths,
+  //     maxPaths: maxPaths,
+  //     marginal: thisNodeCost
+  //   }
 
     
-  }
+  // }
 
 
 }
 
-const checkCostInfo = (node: FosNode): boolean => {
+const checkCostInfo = (node: IFosNode): boolean => {
   const nodeData = node.getData()
   return !!nodeData.cost
 }
@@ -223,8 +228,8 @@ type CostInfo = {
   max: number,
   average: number,
   current: number,
-  minPaths: SelectionPath[],
-  maxPaths: SelectionPath[],
+  minPaths: SelectionPath,
+  maxPaths: SelectionPath,
   marginal: number,
   budget?: {
     available: number,
@@ -335,11 +340,22 @@ const BudgetSlider = (props: {
 }
 
 
+const CostRowComponent = ({ node, options: fosOptions, meta, state, updateState }: FosModuleProps) => {
 
-const module: FosModule = {
+
+  return (<div className="flex flex-initial grow">
+    If you are seeing this, there is an error. 
+  </div>)
+}
+
+
+
+
+const module: FosDataModule = {
   icon: <DollarSign />,
   name: 'cost',
   HeadComponent: ResourceComponent,
+  // RowComponent: CostRowComponent,
 }
 
 export default module

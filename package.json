@@ -2,12 +2,12 @@
   "name": "@fosforescent/react-client",
   "version": "0.1.1",
   "scope": "@fosforescent",
-  "main": "./dist/fosforescent-react.umd.cjs",
+  "main": "./dist/fosforescent-react.umd.js",
   "module": "./dist/fosforescent-react.mjs",
   "exports": {
     ".": {
       "import": "./dist/fosforescent-react.mjs",
-      "require": "./dist/fosforescent-react.umd.cjs"
+      "require": "./dist/fosforescent-react.umd.js"
     }
   },
   "types": "./dist/types/index.d.ts",
@@ -81,6 +81,7 @@
     "rxjs": "^7.5.5",
     "storybook-css-modules": "^1.0.8",
     "styled-components": "^5.3.5",
+    "@syctech/react-trellis": "^0.1.1",
     "tailwind-merge": "^1.14.0",
     "tailwindcss-animate": "^1.0.6",
     "vite-plugin-svgr": "^3.2.0",
@@ -115,6 +116,7 @@
     "@typescript-eslint/eslint-plugin": "^5.57.0",
     "@typescript-eslint/parser": "^5.57.0",
     "@vitejs/plugin-react": "^4.0.4",
+    "@vituum/vite-plugin-postcss": "^1.1.0",
     "autoprefixer": "^10.4.14",
     "babel-jest": "^29.5.0",
     "babel-loader": "^8.3.0",

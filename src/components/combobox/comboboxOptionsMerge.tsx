@@ -21,7 +21,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { PlusIcon, Trash2 } from "lucide-react"
 
-import { FosNode, FosNodeContent, FosContext } from "@fosforescent/fosforescent-js"
+import { FosNodeContent, IFosNode,  } from "@fosforescent/fosforescent-js"
 
 export function ComboboxOptionsMerge({
   // items,
@@ -43,7 +43,7 @@ export function ComboboxOptionsMerge({
   emptyMessage?: string,
   selectMessage?: string,
   searchMessage?: string,
-  node: FosNode,
+  node: IFosNode,
   // defaultValue?: string,
   // selectedIndex: number,
   // handleTextEdit: (value: string) => void,
@@ -55,42 +55,43 @@ export function ComboboxOptionsMerge({
 } & React.HTMLAttributes<HTMLButtonElement>) {
 
 
-  const nodeData = node.getNodeData()
-  const selectedIndex = nodeData.selectedOption
+  const nodeData = node.getData()
+  const selectedIndex = nodeData.option?.selectedIndex || 0
 
 
   const [open, setOpen] = React.useState(false)
   
 
 
-  const optionDescriptions: JSX.Element[] = node.hasMerge() 
-    ? node.getMergeOptions().map((option, i: number) => {
+  const optionDescriptions: JSX.Element[] = [] // node.hasMerge() 
+    // ? node.getMergeOptions().map((option, i: number) => {
 
-      console.log('option', option.description)
-      return (<>
-        {option.description.map((segment, index) => (<span
-          className={`${segment.added ? 'bg-emerald-950/90' : segment.removed ? 'bg-destructive-950/90' : ''}`}
-          key={index}
-        >
-          {segment.value}
-        </span>))}
-      </>)
-    }, [])
-    : node.getNodeData().options.map((option, i: number) => {
-      return (
-        <span key={i}>{option.description}</span>
-      )
-    })
+    //   console.log('option', option.description)
+    //   return (<>
+    //     {option.description.map((segment, index) => (<span
+    //       className={`${segment.added ? 'bg-emerald-950/90' : segment.removed ? 'bg-destructive-950/90' : ''}`}
+    //       key={index}
+    //     >
+    //       {segment.value}
+    //     </span>))}
+    //   </>)
+    // }, [])
+    // : node.getNodeData().options.map((option, i: number) => {
+    //   return (
+    //     <span key={i}>{option.description}</span>
+    //   )
+    // })
 
 
   const handleChange = (value: number) => {
-    console.log('handleChange', value)
-    const nodeData = node.getNodeData()
-    const newNodeData = {
-      ...nodeData,
-      selectedOption: value
-    }
-    node.setNodeData(newNodeData)
+    throw new Error('not implemented')
+    // console.log('handleChange', value)
+    // const nodeData = node.getNodeData()
+    // const newNodeData = {
+    //   ...nodeData,
+    //   selectedOption: value
+    // }
+    // node.setNodeData(newNodeData)
   }
 
   const classes = {

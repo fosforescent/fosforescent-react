@@ -2,49 +2,78 @@
 
 
 import cost from './cost'
-import workflow from './workflow'
+import task from './task'
+import description from './description'
 import duration from './duration'
 import probability from './probability'
 import fosDocument from './document'
 import resources from './resources'
-import { SelectionPath, FosNode } from "@fosforescent/fosforescent-js"
-import { RowsComponent } from '../rows'
-import { StepRow } from '../step'
-import { RootScreenHead } from '../root'
+import option from './option'
+import root from './root'
 import { FosReactOptions } from '..'
+import { IFosNode } from '@fosforescent/fosforescent-js'
+import { TrellisMeta, TrellisSerializedData } from '@syctech/react-trellis'
+import { FosWrapper } from '../fosWrapper'
+import { FosReactGlobal } from '@/components/fos'
 
-const fosModules = {
-  // cost,
-  workflow,
+
+const fosDataModules = {
   duration,
-  // probability,
+  description,
+}
+
+const fosNodeModules = {
+  // cost,
+  option,
+  root,
+  task,
+  // probability,d
   // fosDocument,
   // resources,
 }
 
-const moduleNames = Object.keys(fosModules)
+const fosNodeModuleNames = Object.keys(fosNodeModules)
+const fosDataModuleNames = Object.keys(fosDataModules)
 
-type ModuleProps = {
-  node: FosNode
+type FosModuleProps = {
+  node: FosWrapper
   options: FosReactOptions
+  meta: TrellisMeta<FosWrapper, FosReactGlobal | undefined>
+  state: TrellisSerializedData
+  updateState: (state: TrellisSerializedData) => void
 }
 
-type FosModule = {
+type FosNodeModule = {
   icon: JSX.Element,
   name: string,
-  HeadComponent: React.FC<ModuleProps>,
-  rowStyle?: React.CSSProperties,
-  RowComponent?: React.FC<ModuleProps>,
+  HeadComponent: React.FC<FosModuleProps>,
+  // rowStyle?: React.CSSProperties,
+  RowComponent: React.FC<FosModuleProps>,
 }
 
-type FosModuleName = keyof typeof fosModules
+
+type FosDataModule = {
+  icon: JSX.Element,
+  name: string,
+  HeadComponent: React.FC<FosModuleProps>,
+  // rowStyle?: React.CSSProperties,
+  // RowComponent: React.FC<FosModuleProps>,
+}
+
+type FosNodeModuleName = keyof typeof fosNodeModules
+type FosDataModuleName = keyof typeof fosDataModules
 
 export {
-  fosModules,
-  moduleNames,
+  fosNodeModules,
+  fosDataModules,
+  fosNodeModuleNames,
+  fosDataModuleNames
 }
 
 export type {
-  FosModule,
-  FosModuleName
+  FosNodeModule,
+  FosDataModule,
+  FosNodeModuleName,
+  FosDataModuleName,
+  FosModuleProps
 }

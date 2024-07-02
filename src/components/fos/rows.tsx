@@ -1,110 +1,67 @@
 import React from 'react'
-// import { TreeIcon } from '@radix-ui/react-icons'
-import { FosNodeData, FosContext, FosPath, FosContextData, FosTrail, FosNode, FosRoute } from "@fosforescent/fosforescent-js"
-// import RowView from './row';
-import { StepRow } from './step';
-import { MergeRow } from './mergeRow';
 
 import { Button } from '@/components/ui/button';
 import { TrashIcon, PlusCircledIcon, MinusIcon, PlusIcon, MagicWandIcon  } from '@radix-ui/react-icons'
 import { DragOverlay } from '@dnd-kit/core';
 import { useWindowSize } from "../window-size";
-import { BrainCircuit, CircleEllipsis } from "lucide-react";
-import { suggestSteps } from '@/lib/suggestSteps';
+import { CircleEllipsis } from "lucide-react";
+import {  TrellisMeta, TrellisNodeClass, TrellisNodeInterface, TrellisSerializedData, TrellisRowsComponentProps } from '@syctech/react-trellis';
+import { FosWrapper } from './fosWrapper';
+import { FosReactGlobal } from '.';
+import { FosModuleProps } from './modules/fosModules';
+import { ComboboxEditable } from '../combobox/comboboxEditable';
+import { IFosNode } from '@fosforescent/fosforescent-js';
+import { suggestOption } from '@/lib/suggestOption';
 
-import { suggestMagic } from '@/lib/suggestMagic';
-import { FosModule } from './modules/fosModules';
-
-import { FosReactOptions } from '.';
 
 
-export const RowsComponent = ({
-  parentNode,
-  rows,
-  context,
-  // value,
+type DragInfo = {
+  dragging: {
+    id: string
+    node: FosWrapper
+    breadcrumb: boolean
+  } | null
+  dragOverInfo: {
+    id: string
+    node: FosWrapper
+    position: 'above' | 'below' | 'on' | 'breadcrumb'
+  } | null
+}
+
+
+export const FosRowsComponent = ({
+  node: interfaceNode,
+  dragOverInfo,
   dragging,
   rowDepth,
-  dragOverInfo,
-  locked,
-  activeModule,
-  options
-}:{
-  parentNode: FosNode,
-  rows: FosNode[],
-  context: FosContext,
-  dragging:  { id: string, node: FosNode } | null,
-  // value?: any
-  rowDepth: number
-  locked: boolean
-  dragOverInfo:  { id: string, position: 'above' | 'below' | 'on', node: FosNode } | null,
-  activeModule?: FosModule,
-  options: FosReactOptions
-}) => {
+  disabled,
+  global, 
+  meta,
+  state,
+  updateState
+} : TrellisRowsComponentProps<FosWrapper, FosReactGlobal | undefined>) => {
   
+  const parentNode = meta.trellisNode
 
-  const handleAddNewRow = (index?: number) => {
+  // const handleAddNewRow = (index?: number) => {
 
-    const newNodes = context.addNewTaskToOption(parentNode.getRoute(), index);
-    context.setNodes(newNodes.data.nodes)
-  }
+  //   const newEdgeData = parentNode.getTrailEdge().getDefaultNextEdgeData()
+  //   parentNode.addChild(newEdgeData)
+    
+  // }
 
   const [showMore, setShowMore] = React.useState(false)
 
+  const rows = parentNode.getWrappedChildren()
 
+  const items = rows.map((node, index) => {
 
-
-  
-  // console.log('canSuggest', canSuggest, appState.info.subscription?.apiCallsAvailable, appState.info.subscription?.apiCallsUsed, appState.info.subscription, appState.info, appState)
-
-  const handleSuggest = async () => {
-    if (options?.canPromptGPT && options?.promptGPT){
-      const [newContext, newSubscriptionData] = await suggestSteps(options.promptGPT, parentNode)
-      if (newContext){
-        context.setNodes(newContext.data.nodes)
-      }else{
-        options?.toast && options.toast({
-          title: 'Error',
-          description: 'No suggestions could be generated',
-          duration: 5000,
-        })
-      }
-    } else {
-      console.error('No authedApi')
-      const err =  new Error('No authedApi')
-      err.cause = 'unauthorized'
-      throw err
-    }
-  }
-  
-  const handleMagicWand = async () => {
-    if (options?.canPromptGPT && options?.promptGPT){
-      const newContext = await suggestMagic(options.promptGPT, parentNode)
-      if (newContext){
-        context.setNodes(newContext.data.nodes)
-      }else{
-        options?.toast && options.toast({
-          title: 'Error',
-          description: 'No suggestions could be generated',
-          duration: 5000,
-        })
-      }
-    } else {
-      console.error('No authedApi')
-      const err =  new Error('No authedApi')
-      err.cause = 'unauthorized'
-      throw err
-    }
-  }
-
-  const items = rows.map((node: FosNode, index: number) => {
-
-    const nodeId = node.getNodeId()
-    const nodeType = node.getNodeType()
+    const nodeId = node.getId()
 
     return {
-      id: `${nodeType}-${nodeId}`,
-      data: { node }
+      id: `${nodeId}`,
+      data: { node: node.getInterfaceNode(), breadcrumb: false },
+      breadcrumb: false
     }
   })
 
@@ -113,244 +70,343 @@ export const RowsComponent = ({
   const windowSize = useWindowSize()
   const isSmallWindow = windowSize.width !== undefined && windowSize.width < 500
 
-  return (
-  <div>
 
-      {rows.length > 0 && 
-        rows.map((node, i) => {
+  const newMeta = meta.trellisNode.getMeta()
 
-          const moveLeft = () => {
-            console.log('moveLeft', i)
-            context.moveNodeLeft(node.getRoute())
-          }
 
-          const moveRight = () => {
-            console.log('moveRight', i)
-            context.moveNodeRight(node.getRoute())
-          }
 
-          const deleteRow = () => {
-            console.log('deleteRow', i)
-            node.deleteNode()
-          }
+  const handleAddNewRow = () => {
+    console.log('clicked')
+    const newChild = parentNode.newChild()
+    newChild.setFocus(0)
+  }
 
-          const moveUp = () => {
-            console.log('moveUp', i)
-          }
 
-          const moveDown = () => {
-            console.log('moveDown', i)
-          }
+  const trail = parentNode.getMeta().zoom?.route || []
 
-          const deleteOption = (index: number) => {
-            // console.log('deleteOption', i)
-            node.deleteOption(index)
-          }
+  const route = [...parentNode.getRoute(), parentNode]
 
-          const handleAddOption = (index?: number) => {
-            console.log('handleAddOption', index)
-            const newNodes = context.addOptionToNode(node.getRoute(), undefined, index);
-            context.setNodes(newNodes.data.nodes)
-          }
+  const nodeType = parentNode.getInterfaceNode().fosNode().getNodeType()
 
-          const handleAddYoungerSibling = () => {
-            context.addYoungerSibling(node.getRoute())
-          }
-        
-        
+  // console.log('nodeType', nodeType)
 
-        
-          const item = items[i]
-
-          if (item === undefined) {
-            throw new Error('item is undefined')
-          }
-          
-          return (<div key={i} className={`HERE-${i}`}>
-              <DragRow
-                item={item}
-                node={node}
-                context={context}
-                locked={locked}
-                rowDepth={rowDepth}
-                addOption={handleAddOption}
-                addYoungerSibling={() => handleAddYoungerSibling()}
-                moveLeft={moveLeft}
-                moveRight={moveRight}
-                deleteRow={deleteRow} 
-                moveDown={moveDown}
-                moveUp={moveUp}
-                deleteOption={deleteOption}
-                dragging={dragging}
-                dragOverInfo={dragOverInfo}
-                index={i}
-                activeModule={activeModule}
-                options={options}
-                />
-          </div>)
-      })}
-  {parentNode.getRoute().length - context.data.trail.length === 0 && <div className='py-3' key={`-1`}>
-      <Button 
-        onClick={() => handleAddNewRow()}
-        className={` bg-secondary text-white-900 hover:bg-secondary/80 h-9 ml-3`}
-        // style={{padding: !isSmallWindow ? '15px 15px 15px 15px' : '31px 3px'}}
-        >
-        <PlusCircledIcon height={'1.5rem'} width={'1.5rem'}/>
-      </Button>
-      {options?.promptGPT && <Button className='bg-emerald-900 h-9 ml-3 hover:brightness-150 hover:bg-emerald-900' disabled={!options?.canPromptGPT} onClick={handleSuggest} title="Get suggested steps"><BrainCircuit /></Button>}
-      {options?.promptGPT && <Button className='bg-emerald-900 h-9 ml-3 hover:brightness-150 hover:bg-emerald-900' disabled={!options?.canPromptGPT} onClick={handleMagicWand} title="Get suggested steps"><MagicWandIcon height={"1.5rem"} width={"1.5rem"} /></Button>}
-      {/* <Button onClick={() => setShowMore(!showMore)}  variant='ghost'>
-        {showMore ? <CircleEllipsis /> : <CircleEllipsis className='rotate-90' />}
-      </Button> */}
-
-    </div>}
-  </div>)
+  return {
+    "task": <TaskRows 
+      node={interfaceNode}
+      options={global || {}}
+      meta={meta}
+      state={state}
+      updateState={updateState}
+      dragging={dragging}
+      dragOverInfo={dragOverInfo}
+      disabled={disabled}
+      rowDepth={rowDepth}
+    />,
+    "option": <OptionRowsCombined
+      node={interfaceNode}
+      options={global || {}}
+      meta={meta}
+      state={state}
+      updateState={updateState} 
+    />,
+    "root": <TaskRows 
+      node={interfaceNode}
+      options={global || {}}
+      meta={meta}
+      state={state}
+      updateState={updateState}
+      dragging={dragging}
+      dragOverInfo={dragOverInfo}
+      disabled={disabled}
+      rowDepth={rowDepth}
+    />,
+  }[nodeType] || <></>
 }
 
 
-const DragRow = ({
-  item,
-  context, 
-  dragging,
-  dragOverInfo,
-  index,
-  rowDepth,
-  addYoungerSibling,
-  moveLeft,
-  moveUp, 
-  moveDown,
-  deleteOption,
-  moveRight,
-  deleteRow,
-  addOption,
-  locked,
+
+const OptionRowsCombined = ( {
   node,
-  options,
-  activeModule
-} : {
-  item: { id: string, data: { node: FosNode } }
-  index: number
-  dragging:  { id: string, node: FosNode } | null,
-  dragOverInfo:  { id: string, position: 'above' | 'below' | 'on', node: FosNode } | null,
-  rowDepth: number
-  context: FosContext
-  // handleTextEdit: (value: string) => void,
-  // handleChange: (value: string) => void,
-  addYoungerSibling: () => void,
-  moveLeft: () => void,
-  moveRight: () => void,
-  deleteRow: () => void,
-  addOption: () => void,
-  moveUp: () => void,
-  moveDown: () => void,
-  deleteOption: (index: number) => void,
-  locked: boolean,
-  node: FosNode,
-  activeModule: FosModule | undefined
-  options: FosReactOptions
-}) => {
+  options: fosOptions, 
+  meta,
+  state,
+  updateState
+}: FosModuleProps) => {
+
+
+
+  const getDescription = (node: IFosNode) => {
+    const data = node.getData()
+    return data.description?.content || ""
+  }
+
 
   
-
-
-  // const [nodeOptions, selectedNode, selectedIndex] = context.getNodeOptionsAndObj(rightNode);
-
-  const nodeOptions = node.getNodeData()
-
-
-  const handleChange = (e: string) => {
-    console.log('handleChange', e)
-    const updatedNode = {...nodeOptions , selectedOption: parseInt(e)}
-    const newContext = context.setNode(node, updatedNode)
-    newContext.updateData(newContext.data)    
-    // selectStateSet(e.target.value)
+  const getOptions = (node: IFosNode) => {
+    if (node.getNodeType() === 'option'){
+      return node.getChildren().map((child, index) => {
+        return ({value: index.toString(), label: getDescription(child)})
+      })
+    }else if (node.getNodeType() === 'task'){
+      return [{value: '0', label: getDescription(node)}]
+    }else{
+      console.log('node', node)
+      throw new Error('getoptions must be used on a task or option node')
+    }
   }
 
-  const handleTextEdit = (e: string, focusChar: number) => {
-    // const updatedNode = {...selectedNodeValue, value: {...selectedNodeValue.value, description: e}}
-    const updatedNode = {...node.getOptionContent(), description: e}
-    const newNodeData = node.updateOptionData(updatedNode)
-    const newContextWithNewFocus = context.setFocus(node.getRoute(), focusChar)
-    const newContextWithNode = newContextWithNewFocus.setNode(node, newNodeData)
-    newContextWithNewFocus.updateData(newContextWithNode.data)
+  const options = node.fosNode().getChildren().map((child, index) => {
+    return ({value: index.toString(), label: getDescription(child)})
+  })
+
+
+
+  const selectedIndex = node.getData().option?.selectedIndex || 0
+  const locked = false
+
+
+
+  const children = node.getChildren()
+
+
+  if(selectedIndex === undefined) {
+    console.log('selectedOption', options)
   }
 
-  const toggleCollapse = () => {
-    const nodeData = node.getNodeData()
-    const updatedNode = {...nodeData, collapsed: !nodeOptions.collapsed}
-    console.log('collapseNodeData', nodeData, nodeOptions.collapsed, updatedNode)
-    node.setNodeData(updatedNode)
-    node.context.updateData(node.context.data)
+  const suggestOptions = async (node: IFosNode) => {
+    fosOptions?.promptGPT && suggestOption(fosOptions.promptGPT, node)
+  }
+
+  
+  const handleUndo = () => {
+    fosOptions.undo && fosOptions.canUndo && fosOptions.undo()
+  }
+
+  const handleRedo = () => {
+    fosOptions.redo && fosOptions.canRedo && fosOptions.redo()
   }
 
 
-  // console.log('dragrow', item, trail,)
-  return (
-    // <RowComponent key={index} nodes={nodes} left={leftNode} right={rightNode} dragging={dragging} blank={false} updateRow={updateNodes} />
-      <div  className="flex w-full">
-        {!node.hasMerge() ? (<StepRow
-          node={node}
-          dragItem={item}
-          dragging={dragging}
-          dragOverInfo={dragOverInfo}
-          locked={locked}
-          handleChange={handleChange}
-          handleTextEdit={handleTextEdit}
-          addYoungerSibling={addYoungerSibling}
-          addOption={addOption}
-          moveRight={moveRight}
-          moveLeft={moveLeft}
-          deleteRow={deleteRow}
-          rowDepth={rowDepth}
-          toggleCollapse={toggleCollapse}
-          moveDown={moveDown}
-          moveUp={moveUp}
-          deleteOption={deleteOption}
-          activeModule={activeModule}
-          options={options}
-        />) : (<MergeRow
-          node={node}
-          dragItem={item}
-          dragging={dragging}
-          dragOverInfo={dragOverInfo}
-          locked={locked}
-          handleChange={handleChange}
-          moveRight={moveRight}
-          moveLeft={moveLeft}
-          rowDepth={rowDepth}
-          toggleCollapse={toggleCollapse}
-          moveDown={moveDown}
-          moveUp={moveUp}
-          options={options}
-        />)}
-        {/* <DragOverlay>
-          {dragging === item.id ? <DragOverlayDisplay 
-            node={node}
-          /> : null}
-        </DragOverlay> */}
-      </div>
-  )
+  const handleSuggestOption = async () => {
+    suggestOptions(node.fosNode())
+  }
+  
+  
+  const handleTextEdit = (value: string, focusChar: number | null) => {
+    meta.trellisNode.setFocus(focusChar)
+    node.setData({description: {content: value}})
+  }
+
+  const handleChange = (value: string) => {
+    node.setData({option: {selectedIndex: parseInt(value)}})
+  }
+
+
+  const handleSetFocus = (newFocusChar: number) => {
+    meta.trellisNode.setFocus(newFocusChar)
+  }
+
+  const handleKeyUp = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    meta.trellisNode.keyUpEvents(e)
+
+    console.log('tda', focusChar, value.length)
+    if (e.key === 'Enter' && focusChar === value.length){
+      meta.trellisNode.moveFocusDown()
+    }
+    if (e.key === 'Backspace' && focusChar === 0){
+      meta.trellisNode.moveFocusUp()
+    }
+    // if (e.altKey && e.ctrlKey){
+    //   console.log('test', selectedIndex, node.getChildren().length );
+    //   handleChange( selectedIndex ? ( (selectedIndex - 1 + (children.length)) % children.length ).toString() : "0" )
+    // }
+
+  }
+  
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    meta.trellisNode.keyDownEvents(e)
+  }
+
+  const handleAddOption = () => {
+    // console.log('addOption')
+    // addOption()
+  }
+
+  const handleDeleteRow = () => {
+    meta.trellisNode.delete()
+  }
+  
+  const handleDeleteOption = () => {
+    meta.trellisNode.delete()
+  }
+
+
+  const handleGetFocus = () => {
+    meta.trellisNode.setFocus(focusChar)
+  }
+
+  const focusChar = meta.trellisNode.hasFocus()
+  
+  const isDragging = state.draggingNode ===  meta.trellisNode.getId()
+  const draggingOver = state.draggingOverNode === meta.trellisNode.getId()
+
+  const value = getDescription(node.fosNode())
+
+  const isRoot = !meta.trellisNode.getParent()
+
+  // console.log('isRoot', isRoot, meta.trellisNode.getId())
+
+
+  return (<div className="flex flex-initial grow">
+    <ComboboxEditable 
+      className='w-full bg-transparent'
+      handleTextEdit={handleTextEdit}
+      handleChange={handleChange}
+      suggestOption={handleSuggestOption}
+      getFocus={handleGetFocus}
+      hasFocus={!!focusChar}
+      focusChar={focusChar}
+      deleteOption={handleDeleteOption}
+      // deleteRow={handleDeleteRow}
+      isDragging={isDragging}
+      draggingOver={draggingOver}
+      onKeyDown={handleKeyDown}
+      onKeyUp={handleKeyUp}
+      selectedIndex={selectedIndex}
+      values={options}
+      locked={fosOptions.locked || false }
+      setFocus={handleSetFocus}
+      // defaultValue={selectedNodeDescription}
+      defaultValue={selectedIndex.toString()}
+      addOption={handleAddOption}
+      />
+
+  </div>)
+
+
+
 
 }
 
 
 
-// const DragOverlayDisplay = ({ 
-//   node
-// } : {
-//   node: FosNode
-// }) => {
+const OptionRowsExpanded = ( {
+  node: interfaceNode,
+  options, 
+  meta,
+  state,
+  updateState
+}: FosModuleProps) => {
+
+
+  return (<div>
+
+  </div>)
+
+}
 
 
 
-//   return (<div
-//     className="w-full h-16 bg-blue-100" 
-//     style={{border: '5px solid green'}}>
-//     <div className="flex justify-center items-center h-full">
-//       <div className="text-2xl">
-//         {node.getNodeId()}
-//       </div>
-//     </div>
-//   </div>)
+const TaskRows = ( {
+  node: interfaceNode,
+  options, 
+  meta,
+  state,
+  updateState,
+  dragging,
+  dragOverInfo,
+  disabled,
+  rowDepth
+}: FosModuleProps & DragInfo & { disabled: boolean, rowDepth: number }) => {
 
-// }
+  const parentNode = meta.trellisNode
+
+  const rows = parentNode.getWrappedChildren()
+
+  const items = rows.map((node, index) => {
+
+    const nodeId = node.getId()
+
+    return {
+      id: `${nodeId}`,
+      data: { node: node.getInterfaceNode(), breadcrumb: false },
+      breadcrumb: false
+    }
+  })
+
+  // console.log('rows', rows)
+
+
+
+
+  const handleAddNewRow = () => {
+    console.log('clicked')
+    const newChild = parentNode.newChild()
+    newChild.setFocus(0)
+  }
+
+  const trail = parentNode.getMeta().zoom?.route || []
+
+  const route = [...parentNode.getRoute(), parentNode]
+
+  // console.log("here")
+  return (
+    <div>
+  
+        {rows.length > 0 && 
+          rows.map((childNode , i) => {
+  
+      
+          
+            const RowComponent = childNode.components.row
+            
+
+            // console.log('RowComponent', childNode.getInterfaceNode().fosNode().getNodeType(), RowComponent)
+                  
+            const item = items[i]
+  
+            if (item === undefined) {
+              throw new Error('item is undefined')
+            }
+            
+            const rowMeta = childNode.getMeta()
+  
+            return (<div key={i} className={` `}>
+            {/* <RowComponent key={index} nodes={nodes} left={leftNode} right={rightNode} dragging={dragging} blank={false} updateRow={updateNodes} /> */}
+              <div  className="flex w-full">
+                {(<RowComponent
+  
+                  node={childNode.getInterfaceNode()}
+                  dragItem={item}
+                  dragging={dragging}
+                  dragOverInfo={dragOverInfo}
+                  disabled={disabled}
+                  rowDepth={rowDepth}
+                  global={options}
+                  meta={rowMeta}
+                  state={state}
+                  updateState={updateState}
+                />)}
+                {/* <DragOverlay>
+                  {dragging === item.id ? <DragOverlayDisplay 
+                    node={node}
+                  /> : null}
+                </DragOverlay> */}
+              </div>
+            </div>)
+        })}
+      <div>
+        {(route.length - trail.length) <= 0 && <div className='py-1' key={`-1`}>
+          <Button 
+            onClick={() => handleAddNewRow()}
+            className={`bg-secondary/30 text-white-900 hover:bg-secondary/80 px-2 shadow-none`}
+            // style={{padding: !isSmallWindow ? '15px 15px 15px 15px' : '31px 3px'}}
+            >
+            <PlusCircledIcon height={'1rem'} width={'1rem'}/>
+          </Button>
+  
+        </div>}
+      </div>
+    </div>)
+
+}

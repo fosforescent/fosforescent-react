@@ -1,4 +1,4 @@
-import { FosContext, FosPath, FosNode, FosTrail, FosRoute, FosNodeData, FosNodeContent } from "@fosforescent/fosforescent-js"
+import { FosPath, IFosNode, FosTrail, FosRoute, FosNodeContent } from "@fosforescent/fosforescent-js"
 
 export const suggestOption = async (
   promptGPT: (systemPrompt: string, userPrompt: string, options?: { temperature?: number | undefined; }) => Promise<{
@@ -6,23 +6,40 @@ export const suggestOption = async (
       role: string, content: string
     }, finishReason: string}[]
   }>,
-  node: FosNode,
+  node: IFosNode,
   ) => {
-  const trail = node.getRoute()
-  const [root, ...trailWithoutRoot] = trail
-  const token = localStorage.getItem('token')
 
 
-  const optionDescriptions = node.getNodeData().options.map((option: FosNodeContent) => option.description)
+
+  const past = node.getAncestors().reverse().map(([node, number], index) => {
+    return node
+  })
+
   
 
-  const descriptions = trailWithoutRoot.map((edge: [string, string], index: number) => {
-    const route: FosRoute = [root, ...trailWithoutRoot.slice(0, index + 1)]
-    const thisNode = node.context.getNode(route)
-    const thisNodeOptionContent = thisNode.getOptionContent()
-    return thisNodeOptionContent.description
+  const descriptions = past.map((node, index: number) => {
+    const data = node.getData();
+    return data.description?.content
   })
-    
+  
+  const getOptionDescriptions = (node: IFosNode) => {
+    if (node.getNodeType() === 'option') {
+
+      const children = node.getChildren()
+      const childDescriptions = children.map((child) => {
+        return child.getData().description?.content
+      })
+      return childDescriptions
+
+    } else if (node.getNodeType() === 'task') {
+      return [node.getData().description?.content || ""]
+    } else {
+      throw new Error('node must be a task or option')
+    }
+  }
+  const optionDescriptions = getOptionDescriptions(node)
+  
+
   const [mainTask, ...contextTasks] = descriptions.slice().reverse()
 
   const systemPrompt = `You are part of a group of workers building a tree of subtasks to describe a project, which may be big or small.  As such, you do not provide information that is not directly related to the subtask at hand because it will probably be provided by another worker`
@@ -101,47 +118,36 @@ export const suggestOption = async (
 
 
 
-  const newNodeItems = alternative.steps.map((task: string) => {
-    const newNodeData: FosNodeData = {
-    description: `generated step for ${alternative.description}: ${task}`,
-    selectedOption: 0,
-    collapsed: false,
-    options: [{
-      description: task,
-      data: {},
+  const newNodeItems: FosNodeContent[] = alternative.steps.map((task: string) => {
+    const newNodeData: FosNodeContent = {
+      data: {
+        description: {
+          content: `generated step for ${alternative.description}: ${task}`,
+        }
+      },
       content: []
-    }],
     }
     return newNodeData
   })
 
  
   console.log('suggestion1')
-  const nodeData = node.getNodeData()
+  const nodeData = node.getData()
 
 
-  const newOptions: [FosNodeContent, ...FosNodeContent[]] = [...nodeData.options, {
-    description: alternative.description,
-    data: {},
-    content: []
-  }]
+  const child = node.newChild()
 
+  const newChildData = child.getData()
 
-  const newNodeData = {
-    ...nodeData,
-    selectedOption: newOptions.length - 1,
-    collapsed: false,
-    options: newOptions
+  const newData = {
+    ...newChildData,
+    description: {
+      content: alternative.description
+    }
   }
 
-  const contextWithUpdatedNode = node.setNodeData(newNodeData)
+  child.setData(newData)
 
-  console.log('inserted node', contextWithUpdatedNode.getNode(node.getRoute()).getNodeData(), node.getRoute())
 
-  const nodeFromUpdatedContext = contextWithUpdatedNode.getNode(node.getRoute())
-
-  const newContext = contextWithUpdatedNode.addChildrenToNode(nodeFromUpdatedContext, newNodeItems, newNodeData.selectedOption)
-  // newContext.setNodes(newContext.data.nodes)
-  return [newContext, null]
-  // return [newContext, newSubscriptionData]
+  return
 }

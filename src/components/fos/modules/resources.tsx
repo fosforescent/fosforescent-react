@@ -1,10 +1,11 @@
 import { Boxes, BrainCircuit, PlusCircle } from 'lucide-react'
-import { FosModule } from './fosModules'
+import { FosDataModule, FosModuleProps } from './fosModules'
 import { suggestRecursive } from '@/lib/suggestRecursive'
-import { SelectionPath, FosNode } from "@fosforescent/fosforescent-js"
+import { SelectionPath, IFosNode } from "@fosforescent/fosforescent-js"
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { FosReactOptions } from '..'
+import { FosWrapper } from '../fosWrapper'
 
 
 
@@ -13,35 +14,32 @@ const ResourceComponent = ({
   node,
   options
 }: {
-  node: FosNode,
+  node: FosWrapper,
   options: FosReactOptions
 }) => {
 
 
-  const resourceInfo = getResourceInfo(node)
+  const resourceInfo = getResourceInfo(node.fosNode())
 
 
 
 
     
-  const handleResourceEdit = (index: number, value: {
-    required: string[],
-    available: string[]
-  }) => {
+  const handleResourceEdit = (index: number, value: ResourceData) => {
 
 
-    setResourceInfo(node, value)
+    setResourceInfo(node.fosNode(), value)
   }
 
 
 
   const systemPromptBase = `Take a deep breath.  Please respond only with a single valid JSON object with the key "resources" and an array of strings`
-  const getUserPromptBase = (thisDescription: string, parentDescriptions: string[], node: FosNode) => `Please provide a list of required resources in order ` 
+  const getUserPromptBase = (thisDescription: string, parentDescriptions: string[], node: IFosNode) => `Please provide a list of required resources in order ` 
       + `to complete this task: ${thisDescription} in the context of the task ${parentDescriptions.join(' subtask of the task ')}.  A resource ` 
       + `is anything that is needed to complete the task, such as a tool, a person, a piece of information, or a physical object.  Please be thorough and specific. ` 
       + `and focus on this particular task because other workers will be providing information about other tasks.`
   const systemPromptRecursive = `Take a deep breath.  Please respond only with a single valid JSON object with the key "document" and an array of strings`
-  const getUserPromptRecursive = (thisDescription: string, parentDescriptions: string[], node: FosNode) => {
+  const getUserPromptRecursive = (thisDescription: string, parentDescriptions: string[], node: IFosNode) => {
     const resourceInfo = getResourceInfo(node)
     return `Please provide a list of required resources in order to complete this task: ${thisDescription} in the context of the task ` 
       + `${parentDescriptions.join(' subtask of the task ')}, but the following resource are already accounted for, so please don't include them.`
@@ -49,12 +47,12 @@ const ResourceComponent = ({
       + `and focus on this particular task because other workers will be providing information about other tasks.`
   }
   const pattern = /.*(\{[^{}]*\}).*/m
-  const parsePattern = (result: any, node: FosNode): ResourceData => {
+  const parsePattern = (result: any, node: IFosNode): ResourceData => {
 
 
     const resultParsed = result as { resources: string[] }
     
-    return { required: resultParsed.resources, available: []} 
+    return { required: resultParsed.resources, available: [], produced: []} 
   } 
 
   
@@ -62,7 +60,8 @@ const ResourceComponent = ({
     
   const handleSuggestResources = async () => {
     if (options?.canPromptGPT && options?.promptGPT){
-      const newContext = await suggestRecursive(options?.promptGPT, node, {
+      try {
+        await suggestRecursive(options?.promptGPT, node.fosNode(), {
         systemPromptBase,
         getUserPromptBase,
         systemPromptRecursive,
@@ -73,15 +72,14 @@ const ResourceComponent = ({
         setResourceInfo: setResourceInfo,
         checkResourceInfo: checkResourceInfo,
       } )
-      if (newContext){
-        node.context.setNodes(newContext.data.nodes)
-      }else{
-        options?.toast && options?.toast({
-          title: 'Error',
-          description: 'No suggestions could be generated',
-          duration: 5000,
-        })
-      }
+    } catch (error){
+      options?.toast && options?.toast({
+        title: 'Error',
+        description: 'No suggestions could be generated: ' + error,
+        duration: 5000,
+      })
+    }
+
     } else {
       console.error('No authedApi')
       const err =  new Error('No authedApi')
@@ -108,7 +106,8 @@ const ResourceComponent = ({
 
     const newMarginalInfo = {
       required: newResourceInfo.requiredForThis,
-      available: newResourceInfo.available
+      available: newResourceInfo.available,
+      produced: []
     }
 
     handleResourceEdit(index, newMarginalInfo)
@@ -128,7 +127,8 @@ const ResourceComponent = ({
 
     const newMarginalInfo = {
       required: newResourceInfo.requiredForThis.filter((resource, i) => i !== index),
-      available: newResourceInfo.available
+      available: newResourceInfo.available,
+      produced: []
     }
 
     handleResourceEdit(index, newMarginalInfo)
@@ -154,7 +154,7 @@ const ResourceComponent = ({
 }
 
 
-const getResourceInfo = (node: FosNode): ResourceInfo => {
+const getResourceInfo = (node: IFosNode): ResourceInfo => {
   
   const nodeData = node.getData()
   return {
@@ -178,14 +178,12 @@ type ResourceInfo = {
 
 type ResourceData = {
   required: string[],
-  available: string[]
+  available: string[],
+  produced: string[]
 }
 
 
-const setResourceInfo = (node: FosNode, resourceInfo: {
-  required: string[],
-  available: string[]
-}) => {
+const setResourceInfo = (node: IFosNode, resourceInfo: ResourceData) => {
   const nodeData = node.getData()
 
   return node.setData({
@@ -195,16 +193,26 @@ const setResourceInfo = (node: FosNode, resourceInfo: {
 
 }
 
-const checkResourceInfo = (node: FosNode) => {
+const checkResourceInfo = (node: IFosNode) => {
   const nodeData = node.getData()
   return !!nodeData.resources
 }
 
+const ResourceRowComponent = ({ node, options: fosOptions, meta, state, updateState }: FosModuleProps) => {
 
-const module: FosModule = {
+
+  return (<div className="flex flex-initial grow">
+    If you are seeing this, there is an error. 
+  </div>)
+}
+
+
+
+const module: FosDataModule = {
   icon: <Boxes />,
   name: 'resources',
   HeadComponent: ResourceComponent,
+  // RowComponent: ResourceRowComponent,
 }
 
 export default module
