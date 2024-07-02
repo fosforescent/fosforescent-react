@@ -16,308 +16,233 @@ import {
   Popover,
   PopoverContent,
   PopoverTrigger,
+  PopoverAnchor
 } from "@/components/ui/popover"
 
 import { Input } from "@/components/ui/input"
 import { BrainCircuit, PlusIcon, Trash2 } from "lucide-react"
-
-import { FosNodeContent, IFosNode } from "@fosforescent/fosforescent-js"
-import { Textarea } from "../ui/textarea"
 import { Button } from "../ui/button"
+
+import { InputDiv } from './inputDiv'
+
 
 
 export function ComboboxOptions({
-  // items,
+  values,
   searchMessage = "Search...",
   selectMessage = "Select...",
   emptyMessage = "No results",
-  node,
-  // defaultValue,
-  // selectedIndex,
-  // handleTextEdit,
-  // handleChange,
-  // deleteOption,
-  // addOption,
-  // toggleCollapse,
-  variant = "default",
-  canSuggestOption,
+  defaultValue,
+  selectedIndex,
+  handleTextEdit,
+  isDragging,
+  draggingOver,
+  draggingOn,
+  handleChange,
+  deleteOption,
+  addOption,
   suggestOption,
+  onKeyDown,
+  onKeyUp,
+  locked,
+  hasFocus,
+  focusChar,
+  getFocus,
+  setFocus,
   ...props
 }: {
-  // items: FosNodeContent[],
+  values: {value: string, label: string}[],
+  // getFocus: (char: number | null) => void,
   emptyMessage?: string,
   selectMessage?: string,
   searchMessage?: string,
-  node: IFosNode,
-  // defaultValue?: string,
-  // selectedIndex: number,
-  // handleTextEdit: (value: string) => void,
-  // handleChange: (value: number) => void,
-  // addOption: () => void,
-  // deleteOption: (index:number) => void,
-  // toggleCollapse: () => void,
-  variant?: "default" | "text-mimic",
-  canSuggestOption: boolean, 
-  suggestOption: () => void
-} & React.HTMLAttributes<HTMLButtonElement>) {
-
-
-
-  const nodeType = node.getNodeType()
-
-  if (nodeType !== "option") {
-    throw new Error("combobox options must be used on a option node")
-  }
-
-
-  const selectedIndex = node.getData().option?.selectedIndex || 0
-
+  defaultValue?: string,
+  selectedIndex: number,
+  handleTextEdit: (value: string, focusChar: number) => void,
+  handleChange: (value: string) => void,
+  isDragging: boolean,
+  draggingOver?: boolean,
+  draggingOn?: boolean,
+  addOption: () => void,
+  deleteOption: (index:number) => void,
+  suggestOption: () => void,
+  onKeyDown: (e: React.KeyboardEvent<HTMLDivElement>) => void,
+  onKeyUp: (e: React.KeyboardEvent<HTMLDivElement>) => void,
+  hasFocus: boolean,
+  focusChar: number | null,
+  locked: boolean,
+  getFocus: () => void,
+  setFocus: (focusChar: number) => void,
+} & React.HTMLAttributes<HTMLDivElement>) {
 
   const [open, setOpen] = React.useState(false)
-  
+  const [value, setValue] = React.useState(defaultValue)
 
-
-  const items = node.getChildren().map((child, i) => {
-    
-    const childData = child.getData()
-    
-    return { 
-      description: child.getData().description?.content || "",
-      saveDescription: (description: string) => {
-        const newChildData = {
-          ...childData,
-          description: {
-            ...childData.description,
-            content: description
-          }
-        }
-        child.setData(newChildData)
-      },
-      delete: () => {
-        child.delete()
-      },        
-      
-    }
-  })
-
-  const handleChange = (value: number) => {
-    console.log('handleChange', value)
-    const nodeData = node.getData()
-    const newNodeData = {
-      ...nodeData,
-      option: {
-        ...nodeData.option,
-        selectedIndex: value
+  React.useEffect(() => {
+    if (selectedIndex !== undefined){
+      if (values.length < 1){
+        throw new Error('values.length < 1');
       }
+      // console.log('selectedIndex', selectedIndex, values, defaultValue, props )
+      setValue(selectedIndex.toString() || defaultValue || "0")
     }
-    node.setData(newNodeData)
-  }
-
-  const addOption = () => {
-    node.newChild();
-  }
+  }, [selectedIndex])
 
 
 
-  const currentItem = items[selectedIndex]
 
-  if (!currentItem){
-    console.log('no item', selectedIndex, items)
-    throw new Error('no item')
-  }
-
-  const onTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    e.preventDefault()
-    currentItem.saveDescription(e.target.value)
+  const onTextChange = (value: string, cursorPos: number) => {
+    if (locked){
+      return
+    }
+    handleTextEdit(value, cursorPos)
     return false
   }
 
-  const keyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === " ") {
-      e.stopPropagation();
+
+
+  const handleDeleteOption = (index: number) => {
+    if (locked){
+      return
     }
+    // console.log('handleDeleteOption', index)
+    deleteOption(index)
   }
-
-  const keyPresses = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    console.log('keypress', e.key, selectedIndex)
-
-
-    if (e.key === "ArrowUp") {
-      if (e.altKey){
-        console.log('test', selectedIndex, items.length, (selectedIndex - 1 + items.length) % items.length);
-        handleChange( selectedIndex ? (selectedIndex - 1 + items.length) % items.length  : 0 )
-      }
-    }
-    if (e.key === "ArrowDown") {
-      if (e.altKey){
-        handleChange( selectedIndex ? (selectedIndex + 1) % items.length : 0 )
-      }
-    }
-
-  }
-
-  const inputRef = React.useRef<HTMLTextAreaElement>(null)
-
-  // React.useEffect(() => {
-  //   if(inputRef.current){
-  //     inputRef.current.style.height = 'auto'
-  //     inputRef.current.style.height = (inputRef.current.scrollHeight) + 'px'
-  //   }
-
-  // }, [currentItem.description])
-
-
-  // const inputHeight = inputRef.current ? inputRef.current.scrollHeight : 0
-
-  const inputHeight = 80;
-
-  const classes = {
-    default: "w-[200px] justify-between",
-    "text-mimic": "w-full justify-between text-left display-flex",
-  }[variant]
-
-  const buttonStyle = {
-    default: {},
-    "text-mimic": {
-      height: `${inputHeight}px`,
-      fontSize: '1rem',
-      fontWeight: 'normal',
-      paddingRight: '5px'
-    }
-  }[variant]
 
  
 
+  const dropStyle = draggingOver ? {
+    // backgroundColor: 'rgba(230, 220, 200, .03)',
+  } : {}
+
+  const dropOnStyle = draggingOn ? {
+    backgroundColor: 'rgba(230, 220, 200, .07)',
+    border: '1px solid rgba(230, 220, 200, .3)',
+    // transform: 'scale(1.05)',
+  } : {}
+
+  // console.log('isDragging', isDragging, draggingOver, draggingOn)
+
+  const draggingStyle = isDragging ? {
+    backgroundColor: 'rgba(230, 220, 200, .03)',
+    opacity: '0.5',
+  } : {}
+
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-
-      <div style={{
-        position: 'relative',
-        zIndex: "0",
-        height: `${inputHeight}px`,
-        width: '100%'
-      }}>
-        <StepButton
-          variant="outline"
-          role="combobox"
-          size="lg"
-          aria-expanded={open}
-          className={`${classes} text-right px-2`}
+    <div className="w-full grid grid-cols-[1fr,2rem]">
+      <PopoverAnchor>
+        <InputDiv
+          disabled={locked}
+          shouldFocus={hasFocus}
+          placeholder={values.length > 1 ? "New Option" : "Enter a task to plan"}
+          className="rounded-r-none w-full cursor-text grow"
+          value={value
+            ? values.find((item) => item.value === value)?.label || ""
+            : selectMessage} 
           style={{
-            ...buttonStyle, 
-            width: 'calc(100%)',
-            height: `${inputHeight}px`,
-            zIndex: "0",
+            width: 'calc(100% - 1.25rem)',
+            fontSize: '1rem',
+            fontWeight: 'normal',
+            height: 'auto',
+            // ...dropStyle,
+            // ...dropOnStyle,
+            ...draggingStyle,
           }}
-          {...props}
-        >
-          <div className="w-full justify-end items-end flex p-0">
-            <CaretSortIcon className="h-4 opacity-50" style={{
-              padding: '0px 0px 0px 0px'
-            }} />
-          </div>
-        </StepButton>
+          getFocus={getFocus}
+          onChange={onTextChange}
+          onClick={(e) => { /* console.log("here"); */ e.stopPropagation()}}
+          onKeyDown={onKeyDown}
+          onKeyUp={onKeyUp}
+          focusChar={focusChar}
+        />
+      </PopoverAnchor>
+
+        <PopoverTrigger asChild>
+
         <div style={{
-          zIndex: "1",
-          position: 'absolute',
-          top: '0px',
-          left: '0px',
-          width: '100%',
-          height: '100%',
-        }}>
-        <Textarea
-            ref={inputRef}
-            className="rounded-r-none"
-            value={currentItem
-              ? currentItem.description
-              : selectMessage} 
-              style={{
-                width: 'calc(100% - 2rem)',
-                fontSize: '1.2rem',
-                fontWeight: 'normal',
-                // height: 'calc(100% - 3px)',
-                height: `${inputHeight}px`,
-                overflow: 'hidden',
-                scrollbarWidth: 'none',
-                scrollbarGutter: 'none',
-              }}
-              onChange={onTextChange}
-              onFocus={(e) => { console.log("here") ; e.stopPropagation()}}
-              onClick={(e) => { console.log("here") ; e.stopPropagation()}}
-              onKeyDown={keyDown}
-              onKeyUp={keyPresses}
-              />
+            position: 'relative',
+            opacity: 1,
+            height: 'auto',
+            ...dropOnStyle,
+            ...dropStyle,
+          }}
+          role="combobox"
+          className={`w-full flex items-center justify-center`}
+          >
 
-        </div>
-          </div>
-
-      </PopoverTrigger>
-      <PopoverContent className="w-[200px] p-0">
-        <Command>
-          <CommandInput placeholder={searchMessage} className="h-9" />
-          <CommandEmpty>{emptyMessage}</CommandEmpty>
-          <CommandGroup>
-            {items.map((item, index) => (
-              <CommandItem
-                key={index}
-                value={index.toString()}
-                onSelect={(currentValue) => {
-                  const parsedValue = parseInt(currentValue)
-                  if (isNaN(parsedValue) || !parsedValue === undefined) {
-                    throw new Error("invalid value")
-                  }
-                  handleChange(parsedValue)
-                  setOpen(false)
-                }}
-              >
-                {item.description}
-                <CheckIcon
-                  className={cn(
-                    "ml-auto h-4 w-4",
-                    selectedIndex === index ? "opacity-100" : "opacity-0"
-                  )}
-                />
-                {items.length > 1 && (<div>
-                  <Trash2
-                    className="h-4 w-4 opacity-50 hover:opacity-100 cursor-pointer"
-                    color={"rgba(200, 100, 100, .7)"}
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      item.delete()
-                    }} />
-                </div>)}
-              </CommandItem>
-            ))}
-          </CommandGroup>
-          <CommandGroup>
-            <div  className="grid grid-cols-2 place-content-stretch gap-1">
-              <div className="">
-                <Button
-                  onClick={() => {
-                    addOption()
-                    setOpen(false)
-                  }}
-                  className="justify-center bg-gray-100/30 text-gray-900 hover:bg-gray-200 h-10 w-full"
-                >
-                  <PlusIcon className="h-4" />
-                </Button>
-              </div>
-              <div className="">
-                <Button
-                  onClick={() => {
-                    suggestOption()
-                    setOpen(false)
-                  }}
-                  disabled={!canSuggestOption}
-                  className="bg-emerald-900 w-full">
-                  <BrainCircuit className="h-4"  />
-                </Button>
-              </div>
+            <div className="py-1 w-7 border flex items-center justify-center"
+            aria-expanded={open}>
+              <CaretSortIcon style={{
+                padding: '0px 0px 0px 0px',
+              }} />
             </div>
-          </CommandGroup>
-        </Command>
-      </PopoverContent>
-    </Popover>
+          </div>
+        </PopoverTrigger>
+        <PopoverContent className="w-[200px] p-0">
+          <Command>
+            {/* <CommandInput placeholder={searchMessage} className="h-9" /> */}
+            <CommandEmpty>{emptyMessage}</CommandEmpty>
+            <CommandGroup>
+              {values.map((item, index) => (
+                <CommandItem
+                  key={item.value}
+                  value={item.value}
+                  onSelect={(currentValue) => {
+                    setValue(currentValue === value ? value : currentValue)
+                    handleChange(currentValue)
+                    setOpen(false)
+                  }}
+                  
+                >
+                  {item.label || <span className="opacity-50">{`New Option`}</span>}
+                  <CheckIcon
+                    className={cn(
+                      "ml-auto h-4 w-4",
+                      value === item.value ? "opacity-100" : "opacity-0"
+                    )}
+                  />
+                  {values.length > 1 && (!(value === item.value)) && (<div>
+                    <Trash2
+                      className="h-4 w-4 opacity-50 hover:opacity-100 cursor-pointer"
+                      color={"rgba(200, 100, 100, .7)"}
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        handleDeleteOption(index)
+                      }} />
+                  </div>)}
+                </CommandItem>
+              ))}
+            </CommandGroup>
+            <CommandGroup>
+              <div  className="grid grid-cols-2 place-content-stretch gap-1">
+                <div className="">
+                  <Button
+                    onClick={() => {
+                      addOption()
+                      setOpen(false)
+                    }}
+                    className="justify-center bg-gray-100/30 text-gray-900 hover:bg-gray-200 h-10 w-full"
+                  >
+                    <PlusIcon className="h-4" />
+                  </Button>
+                </div>
+                <div className="">
+                  <Button
+                    onClick={() => {
+                      suggestOption()
+                      setOpen(false)
+                    }}
+                    className="bg-emerald-900 w-full">
+                    <BrainCircuit className="h-4" />
+                  </Button>
+                </div>
+              </div>
+            </CommandGroup>
+          </Command>
+        </PopoverContent>
+        </div>
+        </Popover>
   )
 }
+

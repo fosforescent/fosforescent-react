@@ -1,10 +1,11 @@
 import { BrainCircuit, Download, FileText } from "lucide-react"
-import { FosModule } from "./fosModules"
+import { FosDataModule, FosModuleProps } from "./fosModules"
 import { SelectionPath, IFosNode } from "@fosforescent/fosforescent-js"
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 import { suggestRecursive } from "@/lib/suggestRecursive"
 import { FosReactOptions } from ".."
+import { FosWrapper } from "../fosWrapper"
 
 
 
@@ -12,15 +13,15 @@ import { FosReactOptions } from ".."
 
 
 
-const ResourceComponent = ({ node, options }: { node: IFosNode, options: FosReactOptions }) => {
+const ResourceComponent = ({ node, options }: FosModuleProps) => {
 
 
-  const documentInfo = getDocumentInfo(node)
+  const documentInfo = getDocumentInfo(node.fosNode())
 
  
   
    const handleDocumentEdit = (value: string) => {
-    setDocumentInfo(node, { content: value })
+    setDocumentInfo(node.fosNode(), { content: value })
   }
 
   const handleDownloadDocument = async () => {
@@ -70,7 +71,7 @@ const ResourceComponent = ({ node, options }: { node: IFosNode, options: FosReac
     if (options?.canPromptGPT && options?.promptGPT){
 
       try {
-        await suggestRecursive(options.promptGPT, node, {
+        await suggestRecursive(options.promptGPT, node.fosNode(), {
           systemPromptBase,
           getUserPromptBase,
           systemPromptRecursive,
@@ -101,7 +102,7 @@ const ResourceComponent = ({ node, options }: { node: IFosNode, options: FosReac
 
   return (<div className='w-full text-center overflow-hidden flex flex-row'>
     <div className='p-0'>
-      <Button variant={"secondary"} className='bg-emerald-900 inline-block p-2' onClick={handleSuggestDocument} title="Execute prompt" disabled={checkDocumentInfo(node)}><BrainCircuit /></Button>
+      <Button variant={"secondary"} className='bg-emerald-900 inline-block p-2' onClick={handleSuggestDocument} title="Execute prompt" disabled={checkDocumentInfo(node.fosNode())}><BrainCircuit /></Button>
       <Button variant={"secondary"} className='bg-emerald-900 inline-block p-2' onClick={handleDownloadDocument} title="Execute prompt"><Download /></Button>
     
     </div>
@@ -120,7 +121,7 @@ const ResourceComponent = ({ node, options }: { node: IFosNode, options: FosReac
 
 
 
-const DocumentRowComponent = ({ node }: { node: IFosNode }) => {
+const DocumentRowComponent = ({ node }: { node: FosWrapper }) => {
 
   const codeId = 0
 
@@ -187,11 +188,11 @@ const checkDocumentInfo = (node: IFosNode): boolean => {
 
 
 
-const module: FosModule = {
+const module: FosDataModule = {
   icon: <FileText />,
   name: 'document',
   HeadComponent: ResourceComponent,
-  RowComponent: DocumentRowComponent
+  // RowComponent: DocumentRowComponent
 }
 
 export default module

@@ -3,12 +3,13 @@ import { BrainCircuit, ChevronLeft, ChevronRight, Timer } from 'lucide-react';
 import React, { useEffect, useRef, useState, DetailedHTMLProps, HTMLAttributes } from 'react'
 
 
-import { FosModule } from './fosModules';
+import { FosDataModule, FosModuleProps } from './fosModules';
 import { SelectionPath, IFosNode, FosDataContent } from "@fosforescent/fosforescent-js"
 import { Button } from '@/components/ui/button';
 import { suggestRecursive } from '@/lib/suggestRecursive';
 import { parse } from 'path';
 import { FosReactOptions } from '..';
+import { FosWrapper } from '../fosWrapper';
 
 
 
@@ -180,18 +181,18 @@ export const DurationInput = ({
 
 
 
-const ResourceComponent = ({ node, options }: { node: IFosNode, options: FosReactOptions}) => {
+const ResourceComponent = ({ node, options }: FosModuleProps) => {
 
 
 
 
 
 
-  const durationInfo = getDurationInfo(node)
+  const durationInfo = getDurationInfo(node.fosNode())
 
 
   const handleDurationEdit = (value: DurationData) => {
-    setDurationInfo(node, value)
+    setDurationInfo(node.fosNode(), value)
   }
   
   const handleMinDurationPath = async () => {
@@ -241,7 +242,7 @@ const ResourceComponent = ({ node, options }: { node: IFosNode, options: FosReac
   const handleSuggestDuration = async () => {
     if (options?.canPromptGPT && options?.promptGPT){
       try {
-        await suggestRecursive(options.promptGPT, node, {
+        await suggestRecursive(options.promptGPT, node.fosNode(), {
           systemPromptBase,
           getUserPromptBase,
           systemPromptRecursive,
@@ -419,13 +420,22 @@ export const checkDurationInfo = (node: IFosNode) => {
 
 
 
+const DurationRowComponent = ({ node, options: fosOptions, meta, state, updateState }: FosModuleProps) => {
+
+
+  return (<div className="flex flex-initial grow">
+    If you are seeing this, there is an error. 
+  </div>)
+}
 
 
 
-const module: FosModule = {
+
+const module: FosDataModule = {
   icon: <Timer />,
   name: 'duration',
   HeadComponent: ResourceComponent,
+  // RowComponent: DurationRowComponent,
 }
 
 export default module

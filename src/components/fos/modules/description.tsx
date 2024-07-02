@@ -4,19 +4,21 @@ import { PenBox } from "lucide-react"
 
 import { SelectionPath, IFosNode } from "@fosforescent/fosforescent-js"
 import { suggestOption } from "@/lib/suggestOption"
-import { FosModule } from "./fosModules"
+import { FosDataModule, FosModuleProps, FosNodeModule, FosNodeModuleName, fosNodeModules } from "./fosModules"
 import { FosReactOptions } from ".."
 import { InputDiv } from "@/components/combobox/inputDiv"
 import { TrellisMeta } from "@syctech/react-trellis"
 
-const ResourceComponent = ({ node, options, meta }: { node: IFosNode, options: FosReactOptions, meta: TrellisMeta<IFosNode, FosReactOptions | undefined> }) => {
+
+
+const ResourceComponent = ({ node, options, meta, state, updateState }: FosModuleProps) => {
 
 
   
   const handleSuggestOption = async () => {
     if (options?.canPromptGPT && options?.promptGPT){
       try {
-        await suggestOption(options.promptGPT, node)
+        await suggestOption(options.promptGPT, node.fosNode())
       } catch (err) {
         options?.toast && options.toast({
           title: 'Error',
@@ -33,7 +35,14 @@ const ResourceComponent = ({ node, options, meta }: { node: IFosNode, options: F
     }
   }
 
-  const thisType = node.getNodeType()
+  const moduleKey = node.getNodeType() as FosNodeModuleName
+  // console.log('moduleKey', moduleKey)
+
+  // console.log('rowBody', node.getNodeType(), global?.modules, global?.modules?.find( m => m.name === moduleKey))
+
+  const nodeModule = fosNodeModules[moduleKey] as FosNodeModule
+  const ModuleHeadComponent = nodeModule.HeadComponent
+
 
   const value = node.getData().description?.content || ""
 
@@ -46,24 +55,23 @@ const ResourceComponent = ({ node, options, meta }: { node: IFosNode, options: F
     meta.trellisNode.setFocus(focusChar)
 
   }
-  
+
+  const handleGetFocus = () => {
+    meta.trellisNode.setFocus(meta.focus.focusChar)
+  }
+
+
   return (<div>
-    {<InputDiv
-      value={value}
-      onChange={handleTextChange}
-      placeholder="Task description"
-      
-    />}
+    {<ModuleHeadComponent node={node} options={options} meta={meta} state={state} updateState={updateState} />}
   </div>)
 }
 
 
 
-const module: FosModule = {
+const module: FosDataModule = {
   icon: <PenBox />,
   name: 'workflow',
   HeadComponent: ResourceComponent,
-
 }
 
 export default module

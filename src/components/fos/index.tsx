@@ -1,8 +1,7 @@
-
 import '../../global.css'
 import '../../index.css'
 
-import React, { ReactElement, useEffect, useState } from 'react'
+import React, { ReactElement, useEffect, useState, forwardRef } from 'react'
 
 import { HomeIcon } from '@radix-ui/react-icons'
 import { Button } from "@/components/ui/button"
@@ -15,12 +14,15 @@ import {
 
 import {  FosNodeContent,  FosContextData, FosPath, FosTrail,  IFosNode, FosRootNode } from "@fosforescent/fosforescent-js";
 
-import { FosModule, fosModules } from './modules/fosModules'
+import { FosDataModule, fosDataModules } from './modules/fosModules'
 import { defaultContext } from './initialData'
 import { Trellis, TrellisNodeInterface } from '@syctech/react-trellis'
 import { suggestOption } from '@/lib/suggestOption'
 import { suggestSteps } from '@/lib/suggestSteps'
 import { suggestMagic } from '@/lib/suggestMagic'
+import { FosWrapper } from './fosWrapper'
+import { FosRowComponent } from './row'
+import { FosRowsComponent } from './rows'
 
 
 
@@ -38,9 +40,9 @@ export type FosReactOptions = Partial<{
   undo: () => void,
   canRedo: boolean,
   redo: () => void,
-  activeModule: FosModule,
-  setActiveModule: (module: FosModule | undefined) => void,
-  modules: FosModule[],
+  activeModule: FosDataModule,
+  setActiveModule: (module: FosDataModule | undefined) => void,
+  modules: FosDataModule[],
   theme: "light" | "dark" | "system",
   locked: boolean
 }>
@@ -68,13 +70,15 @@ export const MainView = ({
       setData(newData)
     }
 
-    return new FosRootNode(dataToUse, async (newData) => setDataWithLog(newData))
+    const fosRootNode = new FosRootNode(dataToUse, async (newData) => setDataWithLog(newData))
+    const wrappedRootNode = new FosWrapper(fosRootNode)
+    return wrappedRootNode
   }, [data, setData])
 
 
-  const [activeModule, setActiveModule] = useState<FosModule | undefined>(fosModules.workflow)
+  const [activeModule, setActiveModule] = useState<FosDataModule | undefined>(fosDataModules.description)
 
-  const setActiveModuleWithLog = (module: FosModule | undefined) => {
+  const setActiveModuleWithLog = (module: FosDataModule | undefined) => {
     console.log('setActiveModule', module)
     setActiveModule(module)
   }
@@ -85,23 +89,25 @@ export const MainView = ({
     setActiveModule: setActiveModuleWithLog,
   }
 
-  const global = getGlobal(optionsWithModule || {})
+  const global: FosReactGlobal = getGlobal(optionsWithModule || { activeModule: fosDataModules.description })
 
   const theme = options?.theme ? options.theme : window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"
 
 
 
-  console.log('theme', theme)
+  // console.log('theme', theme)
 
   return (
-    <div className={`w-full fos-root ${theme}`} > 
+    <div className={`w-full fos-root ${theme}`} >
         <Trellis
-          rootNode={rootNode as IFosNode}
+          rootNode={rootNode}
           components={{
             head: RootScreenHead,
+            // row: FosRowComponent,
+            rows: FosRowsComponent,
             rowBody: RowBody,
           }}
-          global={global}
+          global={global || {}}
           theme={theme}
         />
     </div>)
@@ -140,9 +146,9 @@ const getGlobal = (options: FosReactOptions): Partial<FosReactOptions> => {
     ...( options && options?.canUndo ? { undo: options.undo } : {}),
     ...( options ? { toast: options.toast } : {}),
     ...( options ? { theme: options.theme } : {}),
-    ...( options ? { activeModule: options.activeModule || fosModules.workflow } : { activeModule: fosModules.workflow }),
+    ...( options ? { activeModule: options.activeModule || fosDataModules.description } : { activeModule: fosDataModules.description }),
     ...( options ? { setActiveModule: options.setActiveModule } : {}),
-    ...( { modules: [...(options.modules || []), ...Object.values(fosModules) ] } ),
+    ...( { modules: [...(options.modules || []), ...Object.values(fosDataModules) ] } ),
     ...( options ? { locked: options.locked } : { locked: false }),
   }
 

@@ -1,5 +1,5 @@
 import { BrainCircuit, DollarSign } from "lucide-react"
-import { FosModule } from "./fosModules"
+import { FosDataModule, FosModuleProps } from "./fosModules"
 import { Button } from "@/components/ui/button"
 import CurrencyInput from "react-currency-input-field"
 import * as SliderPrimitive from "@radix-ui/react-slider"
@@ -7,15 +7,16 @@ import { cn } from "@/lib/utils"
 import { SelectionPath, IFosNode, FosDataContent } from "@fosforescent/fosforescent-js"
 import { suggestRecursive } from "@/lib/suggestRecursive"
 import { FosReactOptions } from ".."
+import { FosWrapper } from "../fosWrapper"
 
 
 
 
-const ResourceComponent = ({ node, options }: { node: IFosNode, options: FosReactOptions }) => {
+const ResourceComponent = ({ node, options }: FosModuleProps) => {
 
 
 
-  const costInfo = getCostInfo(node)
+  const costInfo = getCostInfo(node.fosNode())
 
  
   
@@ -43,7 +44,7 @@ const ResourceComponent = ({ node, options }: { node: IFosNode, options: FosReac
   const handleSuggestCost = async () => {
     if (options?.canPromptGPT && options?.promptGPT){
       try {
-        await suggestRecursive(options.promptGPT, node, {
+        await suggestRecursive(options.promptGPT, node.fosNode(), {
           systemPromptBase,
           getUserPromptBase,
           systemPromptRecursive,
@@ -74,8 +75,8 @@ const ResourceComponent = ({ node, options }: { node: IFosNode, options: FosReac
 
   const handleCostEdit = (value: number | undefined) => {
     if (!value) return
-    const costInfo = getCostInfo(node)
-    setCostInfo(node, { marginal: value, budget: costInfo.budget })
+    const costInfo = getCostInfo(node.fosNode())
+    setCostInfo(node.fosNode(), { marginal: value, budget: costInfo.budget })
   }
     
 
@@ -227,8 +228,8 @@ type CostInfo = {
   max: number,
   average: number,
   current: number,
-  minPaths: SelectionPath[],
-  maxPaths: SelectionPath[],
+  minPaths: SelectionPath,
+  maxPaths: SelectionPath,
   marginal: number,
   budget?: {
     available: number,
@@ -339,11 +340,22 @@ const BudgetSlider = (props: {
 }
 
 
+const CostRowComponent = ({ node, options: fosOptions, meta, state, updateState }: FosModuleProps) => {
 
-const module: FosModule = {
+
+  return (<div className="flex flex-initial grow">
+    If you are seeing this, there is an error. 
+  </div>)
+}
+
+
+
+
+const module: FosDataModule = {
   icon: <DollarSign />,
   name: 'cost',
   HeadComponent: ResourceComponent,
+  // RowComponent: CostRowComponent,
 }
 
 export default module

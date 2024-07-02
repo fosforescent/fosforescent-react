@@ -16,6 +16,7 @@ import {
   Popover,
   PopoverContent,
   PopoverTrigger,
+  PopoverAnchor
 } from "@/components/ui/popover"
 
 import { Input } from "@/components/ui/input"
@@ -46,7 +47,8 @@ export function ComboboxEditable({
   locked,
   hasFocus,
   focusChar,
-  // getFocus,
+  getFocus,
+  setFocus,
   ...props
 }: {
   values: {value: string, label: string}[],
@@ -69,6 +71,8 @@ export function ComboboxEditable({
   hasFocus: boolean,
   focusChar: number | null,
   locked: boolean,
+  getFocus: () => void,
+  setFocus: (focusChar: number) => void,
 } & React.HTMLAttributes<HTMLDivElement>) {
 
   const [open, setOpen] = React.useState(false)
@@ -117,6 +121,8 @@ export function ComboboxEditable({
     // transform: 'scale(1.05)',
   } : {}
 
+  // console.log('isDragging', isDragging, draggingOver, draggingOn)
+
   const draggingStyle = isDragging ? {
     backgroundColor: 'rgba(230, 220, 200, .03)',
     opacity: '0.5',
@@ -124,27 +130,13 @@ export function ComboboxEditable({
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild className="w-full">
-
-      <div style={{
-          position: 'relative',
-          opacity: 1,
-          height: 'auto',
-          ...dropOnStyle,
-          ...dropStyle,
-          display: 'grid',
-          gridTemplateColumns: '1fr .25rem',
-          width: 'calc(100% - 2rem)',
-        }}
-        role="combobox"
-        className={`grow w-full`}
-        >
-          <InputDiv
+    <div className="w-full grid grid-cols-[1fr,2rem]">
+      <PopoverAnchor>
+        <InputDiv
           disabled={locked}
           shouldFocus={hasFocus}
-          // getFocus={getFocus}
           placeholder={values.length > 1 ? "New Option" : "Enter a task to plan"}
-          className="rounded-r-none w-full cursor-text justify-self-stretch"
+          className="rounded-r-none w-full cursor-text grow"
           value={value
             ? values.find((item) => item.value === value)?.label || ""
             : selectMessage} 
@@ -157,83 +149,100 @@ export function ComboboxEditable({
             // ...dropOnStyle,
             ...draggingStyle,
           }}
+          getFocus={getFocus}
           onChange={onTextChange}
           onClick={(e) => { /* console.log("here"); */ e.stopPropagation()}}
           onKeyDown={onKeyDown}
           onKeyUp={onKeyUp}
           focusChar={focusChar}
-          />
-          <div className="flex w-5 justify-center items-center flex p-0"
-          aria-expanded={open}>
-            <CaretSortIcon className={`h-4 ${values.length > 1 ? "text-teal-100/80" : "opacity-80 fill-white" }`} style={{
-              padding: '0px 0px 0px 0px',
-            }} />
-          </div>
-        </div>
-      </PopoverTrigger>
-      <PopoverContent className="w-[200px] p-0">
-        <Command>
-          {/* <CommandInput placeholder={searchMessage} className="h-9" /> */}
-          <CommandEmpty>{emptyMessage}</CommandEmpty>
-          <CommandGroup>
-            {values.map((item, index) => (
-              <CommandItem
-                key={item.value}
-                value={item.value}
-                onSelect={(currentValue) => {
-                  setValue(currentValue === value ? value : currentValue)
-                  handleChange(currentValue)
-                  setOpen(false)
-                }}
-                
-              >
-                {item.label || <span className="opacity-50">{`New Option`}</span>}
-                <CheckIcon
-                  className={cn(
-                    "ml-auto h-4 w-4",
-                    value === item.value ? "opacity-100" : "opacity-0"
-                  )}
-                />
-                {values.length > 1 && (!(value === item.value)) && (<div>
-                  <Trash2
-                    className="h-4 w-4 opacity-50 hover:opacity-100 cursor-pointer"
-                    color={"rgba(200, 100, 100, .7)"}
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      handleDeleteOption(index)
-                    }} />
-                </div>)}
-              </CommandItem>
-            ))}
-          </CommandGroup>
-          <CommandGroup>
-            <div  className="grid grid-cols-2 place-content-stretch gap-1">
-              <div className="">
-                <Button
-                  onClick={() => {
-                    addOption()
-                    setOpen(false)
-                  }}
-                  className="justify-center bg-gray-100/30 text-gray-900 hover:bg-gray-200 h-10 w-full"
-                >
-                  <PlusIcon className="h-4" />
-                </Button>
-              </div>
-              <div className="">
-                <Button
-                  onClick={() => {
-                    suggestOption()
-                    setOpen(false)
-                  }}
-                  className="bg-emerald-900 w-full">
-                  <BrainCircuit className="h-4" />
-                </Button>
-              </div>
+        />
+      </PopoverAnchor>
+
+        <PopoverTrigger asChild>
+
+        <div style={{
+            position: 'relative',
+            opacity: 1,
+            height: 'auto',
+            ...dropOnStyle,
+            ...dropStyle,
+          }}
+          role="combobox"
+          className={`w-full flex items-center justify-center`}
+          >
+
+            <div className="py-1 w-7 border flex items-center justify-center"
+            aria-expanded={open}>
+              <CaretSortIcon style={{
+                padding: '0px 0px 0px 0px',
+              }} />
             </div>
-          </CommandGroup>
-        </Command>
-      </PopoverContent>
-    </Popover>
+          </div>
+        </PopoverTrigger>
+        <PopoverContent className="w-[200px] p-0">
+          <Command>
+            {/* <CommandInput placeholder={searchMessage} className="h-9" /> */}
+            <CommandEmpty>{emptyMessage}</CommandEmpty>
+            <CommandGroup>
+              {values.map((item, index) => (
+                <CommandItem
+                  key={item.value}
+                  value={item.value}
+                  onSelect={(currentValue) => {
+                    setValue(currentValue === value ? value : currentValue)
+                    handleChange(currentValue)
+                    setOpen(false)
+                  }}
+                  
+                >
+                  {item.label || <span className="opacity-50">{`New Option`}</span>}
+                  <CheckIcon
+                    className={cn(
+                      "ml-auto h-4 w-4",
+                      value === item.value ? "opacity-100" : "opacity-0"
+                    )}
+                  />
+                  {values.length > 1 && (!(value === item.value)) && (<div>
+                    <Trash2
+                      className="h-4 w-4 opacity-50 hover:opacity-100 cursor-pointer"
+                      color={"rgba(200, 100, 100, .7)"}
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        handleDeleteOption(index)
+                      }} />
+                  </div>)}
+                </CommandItem>
+              ))}
+            </CommandGroup>
+            <CommandGroup>
+              <div  className="grid grid-cols-2 place-content-stretch gap-1">
+                <div className="">
+                  <Button
+                    onClick={() => {
+                      addOption()
+                      setOpen(false)
+                    }}
+                    className="justify-center bg-gray-100/30 text-gray-900 hover:bg-gray-200 h-10 w-full"
+                  >
+                    <PlusIcon className="h-4" />
+                  </Button>
+                </div>
+                <div className="">
+                  <Button
+                    onClick={() => {
+                      suggestOption()
+                      setOpen(false)
+                    }}
+                    className="bg-emerald-900 w-full">
+                    <BrainCircuit className="h-4" />
+                  </Button>
+                </div>
+              </div>
+            </CommandGroup>
+          </Command>
+        </PopoverContent>
+        </div>
+        </Popover>
   )
 }
 

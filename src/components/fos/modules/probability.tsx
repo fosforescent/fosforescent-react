@@ -1,15 +1,16 @@
 import { BrainCircuit, Dices } from "lucide-react"
-import { FosModule } from "./fosModules"
+import { FosDataModule, FosModuleProps } from "./fosModules"
 import { Button } from "@/components/ui/button"
 import { SelectionPath, IFosNode } from "@fosforescent/fosforescent-js"
 import { suggestRecursive } from "@/lib/suggestRecursive"
 import { FosReactOptions } from ".."
+import { FosWrapper } from "../fosWrapper"
 
 
 
 
 
-const ResourceComponent = ({ node, options }: { node: IFosNode, options: FosReactOptions }) => {
+const ResourceComponent = ({ node, options }: { node: FosWrapper, options: FosReactOptions }) => {
 
 
 
@@ -18,11 +19,11 @@ const ResourceComponent = ({ node, options }: { node: IFosNode, options: FosReac
     marginSuccess: number,
     marginFailure: number,
   }) => {
-    setProbabilityInfo(node, value)
+    setProbabilityInfo(node.fosNode(), value)
   }
   
 
-  const probabilityInfo = getProbabilityInfo(node)
+  const probabilityInfo = getProbabilityInfo(node.fosNode())
 
 
 
@@ -78,7 +79,7 @@ const ResourceComponent = ({ node, options }: { node: IFosNode, options: FosReac
     if (options?.canPromptGPT && options?.promptGPT){
 
       try {
-        await suggestRecursive(options.promptGPT, node, {
+        await suggestRecursive(options.promptGPT, node.fosNode(), {
           systemPromptBase,
           getUserPromptBase,
           systemPromptRecursive,
@@ -411,11 +412,21 @@ const checkProbabilityInfo = (node: IFosNode): boolean => {
   return !!nodeData.probability
 }
 
+const ProbabilityRowComponent = ({ node, options: fosOptions, meta, state, updateState }: FosModuleProps) => {
 
-const module: FosModule = {
+
+  return (<div className="flex flex-initial grow">
+    If you are seeing this, there is an error. 
+  </div>)
+}
+
+
+
+const module: FosDataModule = {
   icon: <Dices />,
   name: 'probability',
   HeadComponent: ResourceComponent,
+  // RowComponent: ProbabilityRowComponent,
 }
 
 export default module

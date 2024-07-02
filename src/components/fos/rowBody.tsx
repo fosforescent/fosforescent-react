@@ -6,11 +6,14 @@ import { ComboboxEditable } from '../combobox/comboboxEditable'
 import _  from 'lodash'
 import { useWindowSize } from '../window-size'
 import { suggestOption } from '@/lib/suggestOption'
-import { FosModule } from './modules/fosModules'
+import { FosNodeModule, FosNodeModuleName, fosNodeModules } from './modules/fosModules'
 
 import { TrellisRowBodyComponentProps } from "@syctech/react-trellis"
 import { IFosNode } from '@fosforescent/fosforescent-js'
 import { FosReactGlobal } from '.'
+import { ComboboxEditableTask } from '../combobox/comboboxEditableTask'
+import { ChevronDownCircleIcon, ChevronRightCircleIcon, DiscIcon } from 'lucide-react'
+import { FosWrapper } from './fosWrapper'
 
 export const RowBody = ({
   node, 
@@ -37,7 +40,7 @@ export const RowBody = ({
   state,
   updateState
   
-}: TrellisRowBodyComponentProps<IFosNode, FosReactGlobal | undefined>) => {
+}: TrellisRowBodyComponentProps<FosWrapper, FosReactGlobal | undefined>) => {
 
 
 
@@ -67,7 +70,7 @@ export const RowBody = ({
   }
 
 
-  const options = getOptions(node)
+  const options = getOptions(node.fosNode())
 
 
   // console.log('step', node.getNodeId(), nodeOptions)
@@ -75,8 +78,13 @@ export const RowBody = ({
   const selectedIndex = node.getData().option?.selectedIndex || 0
   const locked = false
 
+  const moduleKey = node.getNodeType() as FosNodeModuleName
+  // console.log('moduleKey', moduleKey)
 
-  const ModuleRowComponent = global?.activeModule?.RowComponent || (() => <></>)
+  // console.log('rowBody', node.getNodeType(), global?.modules, global?.modules?.find( m => m.name === moduleKey))
+
+  const nodeModule = fosNodeModules[moduleKey] as FosNodeModule
+  const ModuleRowComponent = nodeModule.RowComponent
 
   const children = node.getChildren()
 
@@ -100,7 +108,7 @@ export const RowBody = ({
 
 
   const handleSuggestOption = async () => {
-    suggestOptions(node)
+    suggestOptions(node.fosNode())
   }
   
   
@@ -142,46 +150,93 @@ export const RowBody = ({
     meta.toggleCollapse()
   }
 
+  // const handleGetFo
+
   const focusChar = meta.trellisNode.hasFocus()
   
   const isDragging = state.draggingNode ===  meta.trellisNode.getId()
   const draggingOver = state.draggingOverNode === meta.trellisNode.getId()
 
-  const value = getDescription(node)
+  const value = getDescription(node.fosNode())
 
   const isRoot = !meta.trellisNode.getParent()
 
-  console.log('isRoot', isRoot, meta.trellisNode.getId())
+  // console.log('isRoot', isRoot, meta.trellisNode.getId())
+
+
+  const toggleCollapse = () => {
+    meta.trellisNode.toggleCollapse()
+  }
+
+
+  
+  const handleZoom = () => {
+    console.log('zooming', node)
+    meta.trellisNode.setZoom()
+    console.log('zooming2', node)
+    meta.trellisNode.refresh()
+  }
+
+  const handleDeleteRow = () => {
+    meta.trellisNode.delete()
+  }
+
+  const handleGetFocus = () => {
+    updateState({
+      ...state,
+      focusRoute: meta.trellisNode.getRoute().map(node => node.getId())
+    })
+  }
+
+  const handleSetFocus = () => {
+    meta.trellisNode.setFocus(focusChar)
+  }
+
+
+
+  const rowDepth = state.rowDepth - (meta.trellisNode.getRoute().length - state.focusRoute.length)
+
+  // console.log('row display', node.getNodeType(), ModuleRowComponent)
 
   return (
-      <div className="flex flex-initial grow">
-        <div className="flex flex-initial grow">
-          <ComboboxEditable 
-            className='w-full bg-transparent'
-            handleTextEdit={handleTextEdit}
-            handleChange={handleChange}
-            suggestOption={handleSuggestOption}
-            // getFocus={meta.acquireFocus}
-            hasFocus={!!focusChar}
-            focusChar={focusChar}
-            isDragging={isDragging}
-            draggingOver={draggingOver}
-            onKeyDown={handleKeyDown}
-            onKeyUp={handleKeyUp}
-            selectedIndex={selectedIndex}
-            values={options}
-            locked={global.locked || false }
-            // defaultValue={selectedNodeDescription}
-            defaultValue={selectedIndex.toString()}
-            addOption={handleAddOption}
-            deleteOption={handleDeleteOption}
-            />
+    <div className="flex items-center">
+      {rowDepth > 0 && children.length > 0
+      && (<div className={`right-box `} style={{
+          width: '1.5rem',
+        }}>
 
+        <div className={`pl-0`}>
+          <span 
+            onClick={toggleCollapse}
+            className={`py-3 cursor-pointer`}
+            >
+          {meta.trellisNode.isCollapsed() ? (<ChevronRightCircleIcon size={'15px'}/>) : (<ChevronDownCircleIcon size={'15px'}/>)}
+          </span>
         </div>
-        {ModuleRowComponent && <div className={`right-box`}>
-          <ModuleRowComponent node={node} options={global} meta={meta} />
-        </div>}
-      </div>)
+    </div>)}
+
+    <div className={`left-box cursor-pointer`} style={{
+      width: '1rem'
+      
+    }} onClick={handleZoom} >
+      
+        {/* <MenuComponent 
+          node={node} 
+          /> */}
+        <DiscIcon
+          width={'1rem'}
+          height={'1rem'}
+          style={{
+            opacity: children.length > 0 ? 1 : .5
+          }} />
+          
+    </div>
+
+    
+    <div className={`right-box grow`}>
+      <ModuleRowComponent node={node} options={global} meta={meta} state={state} updateState={updateState} />
+    </div>
+  </div>)
 
 }
 

@@ -6,7 +6,6 @@ import dotenv from 'dotenv'
 import { libInjectCss } from 'vite-plugin-lib-inject-css'
 import { resolve } from 'path'
 import autoprefixer from "autoprefixer";
-
 import tailwindcss from "tailwindcss";
 
 dotenv.config() // load env vars from .env
@@ -59,9 +58,20 @@ export default defineConfig(() => {
       react(), 
       viteTsconfigPaths(), 
       svgr({ svgrOptions: { icon: true } }),
-      libInjectCss()
+      libInjectCss(),
+      // postcss({
+      //   plugins: [
+      //     tailwindcss,
+      //     autoprefixer,
+      //   ]
+      // }),
     ],
     css: {
+      preprocessorOptions: {
+        css: {
+          javascriptEnabled: true,
+        }
+      },
       postcss: {
         plugins: [
           tailwindcss,

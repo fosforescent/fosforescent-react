@@ -19,7 +19,7 @@ export interface InputDivProps {
   shouldFocus?: boolean;
   placeholder: string;
   focusChar?: number | null;
-  // getFocus: () => void;
+  getFocus: () => void;
 }
 
 export const InputDiv: React.FC<InputDivProps> = ({
@@ -36,7 +36,7 @@ export const InputDiv: React.FC<InputDivProps> = ({
   shouldFocus,
   placeholder,
   focusChar,
-  // getFocus,
+  getFocus,
   ...props
 }) => {
   const divRef = useRef<HTMLDivElement>(null);
@@ -45,7 +45,7 @@ export const InputDiv: React.FC<InputDivProps> = ({
 
   useEffect(() => {
     if (shouldFocus && divRef.current && !hasFocus) {
-      console.log("GOT FOCUS -- ", value)
+      // console.log("GOT FOCUS -- ", value)
       setCursorPosition(divRef.current, focusChar || 0)
       onFocus && onFocus(focusChar || 0);
     }
@@ -102,7 +102,7 @@ export const InputDiv: React.FC<InputDivProps> = ({
     if (!divRef.current) {
       return;
     }
-    // getFocus();
+    getFocus();
     updateInput();
   }
 
@@ -110,6 +110,13 @@ export const InputDiv: React.FC<InputDivProps> = ({
     onKeyDown && onKeyDown(e);
     if (!divRef.current) {
       return;
+    }    
+    if (e.key === 'Enter') {
+      e.stopPropagation();
+      if (!e.shiftKey && !e.ctrlKey && !e.metaKey) {
+        e.preventDefault();
+      }
+      return
     }
     // updateInput();
   };
@@ -119,9 +126,15 @@ export const InputDiv: React.FC<InputDivProps> = ({
     if (!divRef.current) {
       return;
     }
+    if (e.key === 'Enter') {
+      e.stopPropagation();
+      return
+    }
     updateInput();
     console.log('keyup', hasFocus, focusChar, value, divRef.current ? textNodes(divRef.current) : '--', textNodes(divRef.current).length)
   }
+
+  
 
   const handleKeyPress = (e: React.KeyboardEvent<HTMLDivElement>) => {
     onKeyPress && onKeyPress(e);
@@ -137,6 +150,7 @@ export const InputDiv: React.FC<InputDivProps> = ({
 
   const placeholderClassName = dontShowPlaceholder ? moduleStyles.inputDiv : moduleStyles.emptyInputDiv
   // console.log('dontShowPlaceholder', dontShowPlaceholder, value, hasFocus, divRef.current?.innerText)
+  
 
   return (
       <div
@@ -150,7 +164,8 @@ export const InputDiv: React.FC<InputDivProps> = ({
           position: 'relative',
           wordWrap: 'break-word',
           maxWidth: '100%',
-          display: 'inline-flex'
+          display: 'inline-flex',
+          whiteSpace: 'pre-wrap',
         }}
         onInput={updateInput}
         onFocus={handleFocus}

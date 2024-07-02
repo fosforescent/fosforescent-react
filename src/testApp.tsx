@@ -4,6 +4,9 @@ import Main, { FosContextData } from '.'
 import { FosModule, fosModules } from './components/fos/modules/fosModules'
 
 
+import './global.css'
+import './index.css'
+
 const TestApp = () => {
 
 
@@ -25,12 +28,12 @@ const TestApp = () => {
     flexDirection: "column",
     alignItems: "center",
     justifyContent: "center",
-  }} className="border-3 border-black">
+  }}>
     <div style={{
       width: "80%",
       height: "80%",
       overflowY: "auto",
-      }} className='border-black border-1'>
+      }}>
       <Main 
         data={state} 
         setData={setState} 

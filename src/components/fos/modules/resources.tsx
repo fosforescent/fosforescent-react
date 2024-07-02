@@ -1,10 +1,11 @@
 import { Boxes, BrainCircuit, PlusCircle } from 'lucide-react'
-import { FosModule } from './fosModules'
+import { FosDataModule, FosModuleProps } from './fosModules'
 import { suggestRecursive } from '@/lib/suggestRecursive'
 import { SelectionPath, IFosNode } from "@fosforescent/fosforescent-js"
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { FosReactOptions } from '..'
+import { FosWrapper } from '../fosWrapper'
 
 
 
@@ -13,12 +14,12 @@ const ResourceComponent = ({
   node,
   options
 }: {
-  node: IFosNode,
+  node: FosWrapper,
   options: FosReactOptions
 }) => {
 
 
-  const resourceInfo = getResourceInfo(node)
+  const resourceInfo = getResourceInfo(node.fosNode())
 
 
 
@@ -27,7 +28,7 @@ const ResourceComponent = ({
   const handleResourceEdit = (index: number, value: ResourceData) => {
 
 
-    setResourceInfo(node, value)
+    setResourceInfo(node.fosNode(), value)
   }
 
 
@@ -60,7 +61,7 @@ const ResourceComponent = ({
   const handleSuggestResources = async () => {
     if (options?.canPromptGPT && options?.promptGPT){
       try {
-        await suggestRecursive(options?.promptGPT, node, {
+        await suggestRecursive(options?.promptGPT, node.fosNode(), {
         systemPromptBase,
         getUserPromptBase,
         systemPromptRecursive,
@@ -197,11 +198,21 @@ const checkResourceInfo = (node: IFosNode) => {
   return !!nodeData.resources
 }
 
+const ResourceRowComponent = ({ node, options: fosOptions, meta, state, updateState }: FosModuleProps) => {
 
-const module: FosModule = {
+
+  return (<div className="flex flex-initial grow">
+    If you are seeing this, there is an error. 
+  </div>)
+}
+
+
+
+const module: FosDataModule = {
   icon: <Boxes />,
   name: 'resources',
   HeadComponent: ResourceComponent,
+  // RowComponent: ResourceRowComponent,
 }
 
 export default module
