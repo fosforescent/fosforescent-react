@@ -11,9 +11,9 @@ import { TrellisMeta } from "@syctech/react-trellis"
 
 import { ComboboxEditableTask }  from "@/components/combobox/comboboxEditableTask"
 import { FosWrapper } from "../fosWrapper"
+import _ from 'lodash'
 
-
-const ResourceComponent = ({ node, options, meta }: FosModuleProps) => {
+const ResourceComponent = ({ node, options, meta, state, updateState }: FosModuleProps) => {
 
 
   
@@ -55,12 +55,18 @@ const ResourceComponent = ({ node, options, meta }: FosModuleProps) => {
     meta.trellisNode.setFocus(meta.focus.focusChar)
   }
   
+  const thisRoute = node.getRoute().map(node => node.getId())
+
+  const thisShouldFocus = _.isEqual(state.focusRoute, thisRoute) 
+
+
   return (<div>
     {<InputDiv
       value={value}
       onChange={handleTextChange}
       placeholder="Task description"
       getFocus={handleGetFocus}
+      shouldFocus={thisShouldFocus}
     />}
   </div>)
 }
@@ -78,35 +84,20 @@ const WorkflowRowComponent = ({ node, options: fosOptions, meta, state, updateSt
   }
 
 
-  
-  const getOptions = (node: IFosNode) => {
-    if (node.getNodeType() === 'option'){
-      return node.getChildren().map((child, index) => {
-        return ({value: index.toString(), label: getDescription(child)})
-      })
-    }else if (node.getNodeType() === 'task'){
-      return [{value: '0', label: getDescription(node)}]
-    }else{
-      console.log('node', node)
-      throw new Error('getoptions must be used on a task or option node')
-    }
-  }
-
-  const options = getOptions(node.fosNode())
 
 
+  const options = [{
+    value: '0',
+    label: getDescription(node.fosNode())
+  }]
 
-  const selectedIndex = node.getData().option?.selectedIndex || 0
-  const locked = false
+  const locked = fosOptions.locked || false 
 
 
 
   const children = node.getChildren()
 
 
-  if(selectedIndex === undefined) {
-    console.log('selectedOption', options)
-  }
 
   const suggestOptions = async (node: IFosNode) => {
     fosOptions?.promptGPT && suggestOption(fosOptions.promptGPT, node)
@@ -180,7 +171,8 @@ const WorkflowRowComponent = ({ node, options: fosOptions, meta, state, updateSt
       } 
     })
     newThisNode.setChildren(node.getChildren())
-    
+
+    const newTaskNode = optionNode.newChild("task")    
     const newParentChildren = thisParent.getChildren().map(child => {
 
       console.log()
@@ -193,10 +185,6 @@ const WorkflowRowComponent = ({ node, options: fosOptions, meta, state, updateSt
 
     console.log('newParentChildren', newParentChildren, thisParent.getChildren())
 
-    thisParent.setChildren(newParentChildren)
-
-
-    const newTaskNode = optionNode.newChild("task")
 
 
     console.log('newTaskParent', optionNode)
@@ -228,7 +216,12 @@ const WorkflowRowComponent = ({ node, options: fosOptions, meta, state, updateSt
       focusRoute: newTaskNode.getRoute().map(node => node.getId())
     })
 
-    console.log("ADD OPTION", thisParent);
+    console.log("ADD OPTION", thisParent, newParentChildren);
+
+    thisParent.setChildren(newParentChildren)
+
+
+
 
     return newTaskNode
  
@@ -257,6 +250,14 @@ const WorkflowRowComponent = ({ node, options: fosOptions, meta, state, updateSt
 
   // console.log('isRoot', isRoot, meta.trellisNode.getId())
 
+
+
+
+  const thisRoute = node.getRoute().map(node => node.getId())
+
+  const thisShouldFocus = _.isEqual(state.focusRoute, thisRoute) 
+
+
   return (<div className="flex flex-initial grow">
     <ComboboxEditableTask 
       className='w-full bg-transparent'
@@ -264,19 +265,16 @@ const WorkflowRowComponent = ({ node, options: fosOptions, meta, state, updateSt
       // handleChange={handleChange}
       suggestOption={handleSuggestOption}
       getFocus={handleGetFocus}
-      hasFocus={!!focusChar}
+      hasFocus={thisShouldFocus}
       focusChar={focusChar}
       deleteRow={handleDeleteRow}
       isDragging={isDragging}
       draggingOver={draggingOver}
       onKeyDown={handleKeyDown}
       onKeyUp={handleKeyUp}
-      selectedIndex={selectedIndex}
       values={options}
-      locked={fosOptions.locked || false }
+      locked={locked}
       setFocus={handleSetFocus}
-      // defaultValue={selectedNodeDescription}
-      defaultValue={selectedIndex.toString()}
       addOption={handleAddOption}
       />
 

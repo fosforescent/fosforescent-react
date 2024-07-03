@@ -1,3 +1,4 @@
+import React, { useMemo } from "react"
 import { ComboboxOptions } from "@/components/combobox/comboboxOptions"
 import { Button } from "@/components/ui/button"
 import { Option } from "lucide-react"
@@ -10,8 +11,9 @@ import { InputDiv } from "@/components/combobox/inputDiv"
 import { TrellisMeta } from "@syctech/react-trellis"
 import { ComboboxEditable } from "@/components/combobox/comboboxEditable"
 import { FosWrapper } from "../fosWrapper"
+import _ from 'lodash'
 
-const ResourceComponent = ({ node, options, meta }: FosModuleProps) => {
+const ResourceComponent = ({ node, options, meta, state, updateState }: FosModuleProps) => {
 
 
   
@@ -51,6 +53,10 @@ const ResourceComponent = ({ node, options, meta }: FosModuleProps) => {
   const handleGetFocus = () => {
     meta.trellisNode.setFocus(meta.focus.focusChar)
   }
+
+  const thisRoute = node.getRoute().map(node => node.getId())
+
+  const thisShouldFocus = _.isEqual(state.focusRoute, thisRoute) 
   
   return (<div>
     {<InputDiv
@@ -58,6 +64,7 @@ const ResourceComponent = ({ node, options, meta }: FosModuleProps) => {
       onChange={handleTextChange}
       placeholder="Task description"
       getFocus={handleGetFocus}
+      shouldFocus={thisShouldFocus}
     />}
   </div>)
 }
@@ -69,16 +76,17 @@ const OptionRowComponent = ({ node, options: fosOptions, meta, state, updateStat
 
 
 
-  const getDescription = (node: IFosNode) => {
+  const getDescription = (node: FosWrapper) => {
     const data = node.getData()
     return data.description?.content || ""
   }
 
 
   
-  const getOptions = (node: IFosNode) => {
+  const getOptions = (node: FosWrapper) => {
     if (node.getNodeType() === 'option'){
-      return node.getChildren().map((child, index) => {
+      console.log('node', node)
+      return node.getOptions().map((child, index) => {
         return ({value: index.toString(), label: getDescription(child)})
       })
     }else if (node.getNodeType() === 'task'){
@@ -89,16 +97,16 @@ const OptionRowComponent = ({ node, options: fosOptions, meta, state, updateStat
     }
   }
 
-  const options = getOptions(node.fosNode())
+  const options = useMemo(() => {
+
+    const theseOptions = getOptions(node)
+    console.log('theseOptions', theseOptions)
+    return theseOptions
+  }, [state.focusChar, ])
 
 
 
   const selectedIndex = node.getData().option?.selectedIndex || 0
-  const locked = false
-
-
-
-  const children = node.getChildren()
 
 
   if(selectedIndex === undefined) {
@@ -126,7 +134,16 @@ const OptionRowComponent = ({ node, options: fosOptions, meta, state, updateStat
   
   const handleTextEdit = (value: string, focusChar: number | null) => {
     meta.trellisNode.setFocus(focusChar)
-    node.setData({description: {content: value}})
+    const selectedIndex = node.getData().option?.selectedIndex || 0
+    const options = node.getOptions()
+    const selectedNode = options[selectedIndex]
+    if (!selectedNode){
+      console.log('options', options, node)
+      throw new Error('selectedNode not found')
+    }
+    selectedNode.setData({description: {content: value}})
+    // node.setData({description: {content: value}})
+    console.log('handleTextEdit', value, focusChar, node)
   }
 
   const handleChange = (value: string) => {
@@ -191,14 +208,27 @@ const OptionRowComponent = ({ node, options: fosOptions, meta, state, updateStat
   const isRoot = !meta.trellisNode.getParent()
 
 
+
+  const thisRoute = node.getRoute().map(node => node.getId())
+
+  const thisShouldFocus = _.isEqual(state.focusRoute, thisRoute)
+
+  // if (options.length < 1){
+  //   console.log('options', options, node.fosNode())
+  //   throw new Error('options.length < 1')
+  // }
+
+  console.log('options', options, selectedIndex, node.fosNode())
+
   return (<div className="flex flex-initial grow">
-    <ComboboxEditable 
+    <ComboboxEditable
       className='w-full bg-transparent'
       handleTextEdit={handleTextEdit}
       handleChange={handleChange}
       suggestOption={handleSuggestOption}
       getFocus={handleGetFocus}
-      hasFocus={!!focusChar}
+      hasFocus={!!thisShouldFocus}
+      // shouldFocus={thisShouldFocus}
       focusChar={focusChar}
       deleteOption={handleDeleteOption}
       // deleteRow={handleDeleteRow}
