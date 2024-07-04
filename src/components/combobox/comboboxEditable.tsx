@@ -41,7 +41,6 @@ export function ComboboxEditable({
   handleChange,
   deleteOption,
   addOption,
-  suggestOption,
   onKeyDown,
   onKeyUp,
   locked,
@@ -49,6 +48,7 @@ export function ComboboxEditable({
   focusChar,
   getFocus,
   setFocus,
+  suggestOption,
   // shouldFocus,
   ...props
 }: {
@@ -66,7 +66,6 @@ export function ComboboxEditable({
   draggingOn?: boolean,
   addOption: () => void,
   deleteOption: (index:number) => void,
-  suggestOption: () => void,
   onKeyDown: (e: React.KeyboardEvent<HTMLDivElement>) => void,
   onKeyUp: (e: React.KeyboardEvent<HTMLDivElement>) => void,
   hasFocus: boolean,
@@ -74,6 +73,7 @@ export function ComboboxEditable({
   locked: boolean,
   getFocus: () => void,
   setFocus: (focusChar: number) => void,
+  suggestOption: (() => void) | null,
   // shouldFocus: boolean,
 } & React.HTMLAttributes<HTMLDivElement>) {
 
@@ -235,16 +235,16 @@ export function ComboboxEditable({
                     <PlusIcon className="h-4" />
                   </Button>
                 </div>
-                <div className="">
+                {suggestOption && <div className="">
                   <Button
                     onClick={() => {
                       suggestOption()
                       setOpen(false)
                     }}
                     className="bg-emerald-900 w-full">
-                    <BrainCircuit className="h-4" />
+                    <BrainCircuit className="h-4" onClick={suggestOption} />
                   </Button>
-                </div>
+                </div>}
               </div>
             </CommandGroup>
           </Command>

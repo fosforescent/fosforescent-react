@@ -60,7 +60,7 @@ export function ComboboxEditableTask({
   focusChar: number | null,
   setFocus: (focusChar: number) => void,
   getFocus: () => void,
-  suggestOption: () => void,
+  suggestOption: (() => void) | null,
   locked: boolean,
 } & React.HTMLAttributes<HTMLDivElement>) {
 
@@ -200,7 +200,7 @@ export function ComboboxEditableTask({
                     <PlusIcon className="h-4" />
                   </Button>
                 </div>
-                <div className="">
+                {suggestOption && <div className="">
                   <Button
                     onClick={() => {
                       suggestOption()
@@ -209,7 +209,7 @@ export function ComboboxEditableTask({
                     className="bg-emerald-900 w-full">
                     <BrainCircuit className="h-4" />
                   </Button>
-                </div>
+                </div>}
               </div>
             </CommandGroup>
           </Command>

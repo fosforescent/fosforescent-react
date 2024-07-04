@@ -203,7 +203,7 @@ const OptionRowComponent = ({ node, options: fosOptions, meta, state, updateStat
   const isDragging = state.draggingNode ===  meta.trellisNode.getId()
   const draggingOver = state.draggingOverNode === meta.trellisNode.getId()
 
-  const value = getDescription(node.fosNode())
+  const value = getDescription(node)
 
   const isRoot = !meta.trellisNode.getParent()
 
@@ -217,15 +217,16 @@ const OptionRowComponent = ({ node, options: fosOptions, meta, state, updateStat
   //   console.log('options', options, node.fosNode())
   //   throw new Error('options.length < 1')
   // }
+  const canPrompt = fosOptions?.canPromptGPT && fosOptions?.promptGPT
 
-  console.log('options', options, selectedIndex, node.fosNode())
+  console.log('canPrompt', canPrompt)
 
   return (<div className="flex flex-initial grow">
     <ComboboxEditable
       className='w-full bg-transparent'
       handleTextEdit={handleTextEdit}
       handleChange={handleChange}
-      suggestOption={handleSuggestOption}
+      suggestOption={canPrompt ? handleSuggestOption : null}
       getFocus={handleGetFocus}
       hasFocus={!!thisShouldFocus}
       // shouldFocus={thisShouldFocus}

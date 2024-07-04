@@ -1,6 +1,6 @@
 import { ComboboxOptions } from "@/components/combobox/comboboxOptions"
 import { Button } from "@/components/ui/button"
-import { PenBox } from "lucide-react"
+import { PenBox, Wand } from "lucide-react"
 
 import { SelectionPath, IFosNode } from "@fosforescent/fosforescent-js"
 import { suggestOption } from "@/lib/suggestOption"
@@ -12,6 +12,7 @@ import { TrellisMeta } from "@syctech/react-trellis"
 import { ComboboxEditableTask }  from "@/components/combobox/comboboxEditableTask"
 import { FosWrapper } from "../fosWrapper"
 import _ from 'lodash'
+import { suggestMagic } from "@/lib/suggestMagic"
 
 const ResourceComponent = ({ node, options, meta, state, updateState }: FosModuleProps) => {
 
@@ -55,12 +56,35 @@ const ResourceComponent = ({ node, options, meta, state, updateState }: FosModul
     meta.trellisNode.setFocus(meta.focus.focusChar)
   }
   
+  const canPrompt = options?.canPromptGPT && options?.promptGPT
+
+  const handleSuggestMagic = async () => {
+    if (options?.canPromptGPT && options?.promptGPT){
+      try {
+        await suggestMagic(options.promptGPT, node.fosNode())
+      } catch (err) {
+        options?.toast && options.toast({
+          title: 'Error',
+          description: `No suggestions could be generated: ${err}`,
+          duration: 5000,
+        })
+
+      }
+    } else {
+      console.error('No authedApi')
+      const err =  new Error('No authedApi')
+      err.cause = 'unauthorized'
+      throw err
+    }
+  }
+
   const thisRoute = node.getRoute().map(node => node.getId())
 
   const thisShouldFocus = _.isEqual(state.focusRoute, thisRoute) 
 
 
-  return (<div>
+
+  return (<div className={`grid grid-cols-[1fr,2rem] items-center`}>
     {<InputDiv
       value={value}
       onChange={handleTextChange}
@@ -68,6 +92,12 @@ const ResourceComponent = ({ node, options, meta, state, updateState }: FosModul
       getFocus={handleGetFocus}
       shouldFocus={thisShouldFocus}
     />}
+    {<Button
+            onClick={handleSuggestMagic}
+            className={`bg-emerald-900 text-white-900 px-2 shadow-none`}
+          >
+          <Wand height={'1rem'} width={'1rem'}/>
+        </Button>}
   </div>)
 }
 
@@ -257,13 +287,15 @@ const WorkflowRowComponent = ({ node, options: fosOptions, meta, state, updateSt
 
   const thisShouldFocus = _.isEqual(state.focusRoute, thisRoute) 
 
+  const canPrompt = fosOptions?.canPromptGPT && fosOptions?.promptGPT
+
 
   return (<div className="flex flex-initial grow">
     <ComboboxEditableTask 
       className='w-full bg-transparent'
       handleTextEdit={handleTextEdit}
       // handleChange={handleChange}
-      suggestOption={handleSuggestOption}
+      suggestOption={canPrompt ? handleSuggestOption : null}
       getFocus={handleGetFocus}
       hasFocus={thisShouldFocus}
       focusChar={focusChar}
