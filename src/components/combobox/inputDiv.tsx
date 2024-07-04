@@ -131,7 +131,7 @@ export const InputDiv: React.FC<InputDivProps> = ({
       return
     }
     updateInput();
-    console.log('keyup', hasFocus, focusChar, value, divRef.current ? textNodes(divRef.current) : '--', textNodes(divRef.current).length)
+    console.log('keyup', e.key, hasFocus, focusChar, value, divRef.current ? textNodes(divRef.current) : '--', textNodes(divRef.current).length)
   }
 
   
@@ -160,12 +160,11 @@ export const InputDiv: React.FC<InputDivProps> = ({
         className={`h-full w-full border-none  ${placeholderClassName} ${className}`}
         style={{
           ...moduleStyles,
-          ...style,
           position: 'relative',
           wordWrap: 'break-word',
           maxWidth: '100%',
-          display: 'inline-flex',
           whiteSpace: 'pre-wrap',
+          ...(style || {}),
         }}
         onInput={updateInput}
         onFocus={handleFocus}

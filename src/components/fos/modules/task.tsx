@@ -1,6 +1,6 @@
 import { ComboboxOptions } from "@/components/combobox/comboboxOptions"
 import { Button } from "@/components/ui/button"
-import { PenBox } from "lucide-react"
+import { PenBox, Wand } from "lucide-react"
 
 import { SelectionPath, IFosNode } from "@fosforescent/fosforescent-js"
 import { suggestOption } from "@/lib/suggestOption"
@@ -11,9 +11,10 @@ import { TrellisMeta } from "@syctech/react-trellis"
 
 import { ComboboxEditableTask }  from "@/components/combobox/comboboxEditableTask"
 import { FosWrapper } from "../fosWrapper"
+import _ from 'lodash'
+import { suggestMagic } from "@/lib/suggestMagic"
 
-
-const ResourceComponent = ({ node, options, meta }: FosModuleProps) => {
+const ResourceComponent = ({ node, options, meta, state, updateState }: FosModuleProps) => {
 
 
   
@@ -55,13 +56,48 @@ const ResourceComponent = ({ node, options, meta }: FosModuleProps) => {
     meta.trellisNode.setFocus(meta.focus.focusChar)
   }
   
-  return (<div>
+  const canPrompt = options?.canPromptGPT && options?.promptGPT
+
+  const handleSuggestMagic = async () => {
+    if (options?.canPromptGPT && options?.promptGPT){
+      try {
+        await suggestMagic(options.promptGPT, node.fosNode())
+      } catch (err) {
+        options?.toast && options.toast({
+          title: 'Error',
+          description: `No suggestions could be generated: ${err}`,
+          duration: 5000,
+        })
+
+      }
+    } else {
+      console.error('No authedApi')
+      const err =  new Error('No authedApi')
+      err.cause = 'unauthorized'
+      throw err
+    }
+  }
+
+  const thisRoute = node.getRoute().map(node => node.getId())
+
+  const thisShouldFocus = _.isEqual(state.focusRoute, thisRoute) 
+
+
+
+  return (<div className={`grid grid-cols-[1fr,2rem] items-center`}>
     {<InputDiv
       value={value}
       onChange={handleTextChange}
       placeholder="Task description"
       getFocus={handleGetFocus}
+      shouldFocus={thisShouldFocus}
     />}
+    {<Button
+            onClick={handleSuggestMagic}
+            className={`bg-emerald-900 text-white-900 px-2 shadow-none`}
+          >
+          <Wand height={'1rem'} width={'1rem'}/>
+        </Button>}
   </div>)
 }
 
@@ -78,35 +114,20 @@ const WorkflowRowComponent = ({ node, options: fosOptions, meta, state, updateSt
   }
 
 
-  
-  const getOptions = (node: IFosNode) => {
-    if (node.getNodeType() === 'option'){
-      return node.getChildren().map((child, index) => {
-        return ({value: index.toString(), label: getDescription(child)})
-      })
-    }else if (node.getNodeType() === 'task'){
-      return [{value: '0', label: getDescription(node)}]
-    }else{
-      console.log('node', node)
-      throw new Error('getoptions must be used on a task or option node')
-    }
-  }
-
-  const options = getOptions(node.fosNode())
 
 
+  const options = [{
+    value: '0',
+    label: getDescription(node.fosNode())
+  }]
 
-  const selectedIndex = node.getData().option?.selectedIndex || 0
-  const locked = false
+  const locked = fosOptions.locked || false 
 
 
 
   const children = node.getChildren()
 
 
-  if(selectedIndex === undefined) {
-    console.log('selectedOption', options)
-  }
 
   const suggestOptions = async (node: IFosNode) => {
     fosOptions?.promptGPT && suggestOption(fosOptions.promptGPT, node)
@@ -180,7 +201,8 @@ const WorkflowRowComponent = ({ node, options: fosOptions, meta, state, updateSt
       } 
     })
     newThisNode.setChildren(node.getChildren())
-    
+
+    const newTaskNode = optionNode.newChild("task")    
     const newParentChildren = thisParent.getChildren().map(child => {
 
       console.log()
@@ -193,10 +215,6 @@ const WorkflowRowComponent = ({ node, options: fosOptions, meta, state, updateSt
 
     console.log('newParentChildren', newParentChildren, thisParent.getChildren())
 
-    thisParent.setChildren(newParentChildren)
-
-
-    const newTaskNode = optionNode.newChild("task")
 
 
     console.log('newTaskParent', optionNode)
@@ -228,7 +246,12 @@ const WorkflowRowComponent = ({ node, options: fosOptions, meta, state, updateSt
       focusRoute: newTaskNode.getRoute().map(node => node.getId())
     })
 
-    console.log("ADD OPTION", thisParent);
+    console.log("ADD OPTION", thisParent, newParentChildren);
+
+    thisParent.setChildren(newParentChildren)
+
+
+
 
     return newTaskNode
  
@@ -257,26 +280,33 @@ const WorkflowRowComponent = ({ node, options: fosOptions, meta, state, updateSt
 
   // console.log('isRoot', isRoot, meta.trellisNode.getId())
 
+
+
+
+  const thisRoute = node.getRoute().map(node => node.getId())
+
+  const thisShouldFocus = _.isEqual(state.focusRoute, thisRoute) 
+
+  const canPrompt = fosOptions?.canPromptGPT && fosOptions?.promptGPT
+
+
   return (<div className="flex flex-initial grow">
     <ComboboxEditableTask 
       className='w-full bg-transparent'
       handleTextEdit={handleTextEdit}
       // handleChange={handleChange}
-      suggestOption={handleSuggestOption}
+      suggestOption={canPrompt ? handleSuggestOption : null}
       getFocus={handleGetFocus}
-      hasFocus={!!focusChar}
+      hasFocus={thisShouldFocus}
       focusChar={focusChar}
       deleteRow={handleDeleteRow}
       isDragging={isDragging}
       draggingOver={draggingOver}
       onKeyDown={handleKeyDown}
       onKeyUp={handleKeyUp}
-      selectedIndex={selectedIndex}
       values={options}
-      locked={fosOptions.locked || false }
+      locked={locked}
       setFocus={handleSetFocus}
-      // defaultValue={selectedNodeDescription}
-      defaultValue={selectedIndex.toString()}
       addOption={handleAddOption}
       />
 

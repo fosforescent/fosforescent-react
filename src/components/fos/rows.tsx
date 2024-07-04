@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { TrashIcon, PlusCircledIcon, MinusIcon, PlusIcon, MagicWandIcon  } from '@radix-ui/react-icons'
 import { DragOverlay } from '@dnd-kit/core';
 import { useWindowSize } from "../window-size";
-import { CircleEllipsis } from "lucide-react";
+import { BrainCircuit, CircleEllipsis, Wand } from "lucide-react";
 import {  TrellisMeta, TrellisNodeClass, TrellisNodeInterface, TrellisSerializedData, TrellisRowsComponentProps } from '@syctech/react-trellis';
 import { FosWrapper } from './fosWrapper';
 import { FosReactGlobal } from '.';
@@ -12,6 +12,7 @@ import { FosModuleProps } from './modules/fosModules';
 import { ComboboxEditable } from '../combobox/comboboxEditable';
 import { IFosNode } from '@fosforescent/fosforescent-js';
 import { suggestOption } from '@/lib/suggestOption';
+import { suggestSteps } from '@/lib/suggestSteps';
 
 
 
@@ -337,7 +338,9 @@ const TaskRows = ( {
   // console.log('rows', rows)
 
 
-
+  const handleSuggestSubtasks = async () => {
+    options?.promptGPT && suggestSteps(options.promptGPT, interfaceNode.fosNode())
+  }
 
   const handleAddNewRow = () => {
     console.log('clicked')
@@ -348,6 +351,8 @@ const TaskRows = ( {
   const trail = parentNode.getMeta().zoom?.route || []
 
   const route = [...parentNode.getRoute(), parentNode]
+
+  const canPrompt = options.canPromptGPT && options.promptGPT
 
   // console.log("here")
   return (
@@ -404,8 +409,16 @@ const TaskRows = ( {
             >
             <PlusCircledIcon height={'1rem'} width={'1rem'}/>
           </Button>
-  
+          {canPrompt && <Button
+            onClick={handleSuggestSubtasks}
+            className={`bg-emerald-900 text-white-900 px-2 shadow-none`}
+          >
+            <BrainCircuit height={'1rem'} width={'1rem'}/>
+          </Button>}
+          
+
         </div>}
+   
       </div>
     </div>)
 

@@ -41,7 +41,6 @@ export function ComboboxEditable({
   handleChange,
   deleteOption,
   addOption,
-  suggestOption,
   onKeyDown,
   onKeyUp,
   locked,
@@ -49,6 +48,8 @@ export function ComboboxEditable({
   focusChar,
   getFocus,
   setFocus,
+  suggestOption,
+  // shouldFocus,
   ...props
 }: {
   values: {value: string, label: string}[],
@@ -65,7 +66,6 @@ export function ComboboxEditable({
   draggingOn?: boolean,
   addOption: () => void,
   deleteOption: (index:number) => void,
-  suggestOption: () => void,
   onKeyDown: (e: React.KeyboardEvent<HTMLDivElement>) => void,
   onKeyUp: (e: React.KeyboardEvent<HTMLDivElement>) => void,
   hasFocus: boolean,
@@ -73,6 +73,8 @@ export function ComboboxEditable({
   locked: boolean,
   getFocus: () => void,
   setFocus: (focusChar: number) => void,
+  suggestOption: (() => void) | null,
+  // shouldFocus: boolean,
 } & React.HTMLAttributes<HTMLDivElement>) {
 
   const [open, setOpen] = React.useState(false)
@@ -80,9 +82,11 @@ export function ComboboxEditable({
 
   React.useEffect(() => {
     if (selectedIndex !== undefined){
-      if (values.length < 1){
-        throw new Error('values.length < 1');
-      }
+      // if (values.length < 1){
+      //   console.log('values', values)
+
+      //   throw new Error('values.length < 1');
+      // }
       // console.log('selectedIndex', selectedIndex, values, defaultValue, props )
       setValue(selectedIndex.toString() || defaultValue || "0")
     }
@@ -128,6 +132,9 @@ export function ComboboxEditable({
     opacity: '0.5',
   } : {}
 
+
+  console.log('open', open, value, values, defaultValue, selectedIndex, props)
+
   return (
     <Popover open={open} onOpenChange={setOpen}>
     <div className="w-full grid grid-cols-[1fr,2rem]">
@@ -155,6 +162,7 @@ export function ComboboxEditable({
           onKeyDown={onKeyDown}
           onKeyUp={onKeyUp}
           focusChar={focusChar}
+
         />
       </PopoverAnchor>
 
@@ -227,16 +235,16 @@ export function ComboboxEditable({
                     <PlusIcon className="h-4" />
                   </Button>
                 </div>
-                <div className="">
+                {suggestOption && <div className="">
                   <Button
                     onClick={() => {
                       suggestOption()
                       setOpen(false)
                     }}
                     className="bg-emerald-900 w-full">
-                    <BrainCircuit className="h-4" />
+                    <BrainCircuit className="h-4" onClick={suggestOption} />
                   </Button>
-                </div>
+                </div>}
               </div>
             </CommandGroup>
           </Command>

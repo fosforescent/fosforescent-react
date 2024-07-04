@@ -172,9 +172,27 @@ export const RowBody = ({
   
   const handleZoom = () => {
     console.log('zooming', node)
-    meta.trellisNode.setZoom()
-    console.log('zooming2', node)
-    meta.trellisNode.refresh()
+    const nodeType = node.getNodeType()
+    if (nodeType === 'task'){
+      meta.trellisNode.setZoom()
+      console.log('zooming', node)
+      meta.trellisNode.refresh()
+    } else if (nodeType === 'option'){
+      const nodeData = node.getData()
+      const selectedIndex = nodeData.option?.selectedIndex || 0
+      const selectedChild = node.getChildren()[selectedIndex]
+      if (!selectedChild){
+        console.log('option info', node, node.getChildren(), node.getData())
+        throw new Error('selectedChild not found')
+      }
+      const selectedChildRoute = selectedChild.getRoute().map(node => node.getId())
+      updateState({
+        ...state,
+        focusRoute: selectedChildRoute
+      })
+    } else {
+      throw new Error('zoom not implemented for this node type')
+    }
   }
 
   const handleDeleteRow = () => {

@@ -30,8 +30,6 @@ export function ComboboxEditableTask({
   searchMessage = "Search...",
   selectMessage = "Select...",
   emptyMessage = "No results",
-  defaultValue,
-  selectedIndex,
   isDragging,
   draggingOver,
   draggingOn,
@@ -51,8 +49,6 @@ export function ComboboxEditableTask({
   emptyMessage?: string,
   selectMessage?: string,
   searchMessage?: string,
-  defaultValue?: string,
-  selectedIndex: number,
   handleTextEdit: (value: string, focusChar: number) => void,
   isDragging: boolean,
   draggingOver?: boolean,
@@ -64,22 +60,12 @@ export function ComboboxEditableTask({
   focusChar: number | null,
   setFocus: (focusChar: number) => void,
   getFocus: () => void,
-  suggestOption: () => void,
+  suggestOption: (() => void) | null,
   locked: boolean,
 } & React.HTMLAttributes<HTMLDivElement>) {
 
   const [open, setOpen] = React.useState(false)
-  const [value, setValue] = React.useState(defaultValue)
 
-  React.useEffect(() => {
-    if (selectedIndex !== undefined){
-      if (values.length < 1){
-        throw new Error('values.length < 1');
-      }
-      // console.log('selectedIndex', selectedIndex, values, defaultValue, props )
-      setValue(selectedIndex.toString() || defaultValue || "0")
-    }
-  }, [selectedIndex])
 
   const classes = {
     default: "w-[200px] ",
@@ -96,7 +82,6 @@ export function ComboboxEditableTask({
     }
   }[variant]
 
-  const textValue = values.find((item) => item.value === value)?.label
 
 
   const dropStyle = draggingOver ? {
@@ -119,21 +104,20 @@ export function ComboboxEditableTask({
 
   return (
       <Popover open={open} onOpenChange={setOpen}>
-    <div className="w-full grid grid-cols-[1fr,2rem]">
+    <div className="w-full grid grid-cols-[1fr,2rem] items-center">
       <PopoverAnchor>
       <InputDiv
         disabled={locked}
         shouldFocus={hasFocus}
-        placeholder={values.length > 1 ? "New Option" : "Enter a task to plan"}
+        placeholder={"Enter a task to plan"}
         className="rounded-r-none w-full cursor-text grow"
         // getFocus={getFocus}
-        value={value
-          ? values.find((item) => item.value === value)?.label || ""
-          : selectMessage} 
+        value={values[0]!.label} 
         style={{
           fontSize: '1rem',
           fontWeight: 'normal',
-          height: 'auto',
+          height: '100%',
+          // height: 'auto',
           // ...dropStyle,
           // ...dropOnStyle,
           ...draggingStyle,
@@ -216,7 +200,7 @@ export function ComboboxEditableTask({
                     <PlusIcon className="h-4" />
                   </Button>
                 </div>
-                <div className="">
+                {suggestOption && <div className="">
                   <Button
                     onClick={() => {
                       suggestOption()
@@ -225,7 +209,7 @@ export function ComboboxEditableTask({
                     className="bg-emerald-900 w-full">
                     <BrainCircuit className="h-4" />
                   </Button>
-                </div>
+                </div>}
               </div>
             </CommandGroup>
           </Command>

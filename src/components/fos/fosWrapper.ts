@@ -14,6 +14,7 @@ class FosWrapper implements TrellisNodeInterface<FosWrapper> {
 
   setChildren(children: FosWrapper[]): void {
     const nodeType = this.node.getNodeType()
+    // console.log('setChildren', nodeType, children.map(child => child.getId()))
     if(nodeType === "option"){
       const selectedChildIndex = this.node.getData().option?.selectedIndex || 0
       const selectedChild = this.node.getChildren()[selectedChildIndex]
@@ -21,9 +22,13 @@ class FosWrapper implements TrellisNodeInterface<FosWrapper> {
         console.log('option info', this.node, this.node.getChildren())
         throw new Error('selectedChild not found')
       }
+      // console.log('setChildren - before (opt)', this.node)
       selectedChild.setChildren(children.map(child => child.fosNode()))
+      // console.log('setChildren - after (opt)', this.node)
     } else if (nodeType === "task"){
+      // console.log('setChildren - before', this.node)
       this.node.setChildren(children.map(child => child.fosNode()))
+      // console.log('setChildren - after', this.node)
     } else if (nodeType === "root"){
       this.node.setChildren(children.map(child => child.fosNode()))
     } else {
@@ -35,22 +40,36 @@ class FosWrapper implements TrellisNodeInterface<FosWrapper> {
 
   getChildren(): FosWrapper[] {
     const nodeType = this.node.getNodeType()
-    if (this.node.getChildren().length === 0){
+    // console.log('getChildren', nodeType, this.node.getChildren().map(child => child.getId()))
+    const thisChildren = this.node.getChildren()
+    if (thisChildren.length === 0){
+      // console.log('no children', this.node)
       return []
     }
     if (nodeType === "option"){
+      // console.log("opt")
       const selectedIndex = this.node.getData().option?.selectedIndex || 0
-      const selectedChild = this.node.getChildren()[selectedIndex] ||  this.node.getChildren()[0]
+
+      const selectedChild = thisChildren[selectedIndex] ||  this.node.getChildren()[0]
       if (!selectedChild){
-        console.log('option info', this.node, this.node.getChildren(), this.node.getData())
+        console.log('option info', this.node, thisChildren, this.node.getData(), selectedIndex)
         throw new Error('selectedChild not found')
       }
-      return selectedChild.getChildren().map(child => new FosWrapper(child))
+      const children = selectedChild.getChildren().map(child => new FosWrapper(child))
+      // console.log('children', children)
+      return children
     } else if (nodeType === "task"){
-      return this.node.getChildren().map(child => new FosWrapper(child))
+      // console.log("Tsk")
+      const children = this.node.getChildren().map(child => new FosWrapper(child))
+      // console.log('children', this.node, children)
+      return children
     } else if (nodeType === "root"){
-      return this.node.getChildren().map(child => new FosWrapper(child))
+      // console.log("rt")
+      const children = this.node.getChildren().map(child => new FosWrapper(child))
+      // console.log('children', children)
+      return children
     } else {
+      // console.log("?")
       throw new Error(`Method not implemented for type ${this.node.getNodeType()}.`);
     }
   }
