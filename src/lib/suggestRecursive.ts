@@ -42,9 +42,9 @@ export const suggestRecursive = async <T, S>(
   }
 
   
-  const past = node.getAncestors().reverse().map(([node, number], index) => {
+  const past = node.getAncestors().slice(1).reverse().map(([node, number], index) => {
     return node
-  })
+  }).concat([node])
 
   const descriptions: string[] = past.map((node, index: number) => {
     const data = node.getData();

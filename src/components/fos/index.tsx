@@ -93,6 +93,7 @@ export const MainView = ({
   const theme = options?.theme ? options.theme : window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"
 
 
+  console.log('global', global, options)
 
   // console.log('theme', theme)
 
@@ -136,9 +137,14 @@ const getPromptActions = (promptGPT: (systemPrompt: string, userPrompt: string, 
 
 
 const getGlobal = (options: FosReactOptions): Partial<FosReactOptions> => {
-
+  console.log('options', options)
   const global = {
-    ...( options && options?.canPromptGPT && options?.promptGPT ? getPromptActions(options.promptGPT) : {}),
+    ...( options && options?.canPromptGPT && options?.promptGPT ? {
+      canPromptGPT: true,
+      promptGPT: options.promptGPT,
+    } : {
+      canPromptGPT: false,
+    }),
     ...( options && options?.canRedo ? { canRedo: true } : { canRedo: false }),
     ...( options && options?.canUndo ? { canUndo: true } : { canUndo: false }),
     ...( options && options?.canRedo ? { redo: options.redo } : {}),

@@ -354,7 +354,12 @@ const TaskRows = ( {
 
   const canPrompt = options.canPromptGPT && options.promptGPT
 
-  // console.log("here")
+  console.log("here", canPrompt)
+
+  const rowsEmpty = rows.length === 0 || (rows.length === 1 && rows[0]?.getString() === "")
+
+  const isRoot = !meta.trellisNode.getParent()
+
   return (
     <div>
   
@@ -409,7 +414,7 @@ const TaskRows = ( {
             >
             <PlusCircledIcon height={'1rem'} width={'1rem'}/>
           </Button>
-          {canPrompt && <Button
+          {canPrompt && rowsEmpty && !isRoot && <Button
             onClick={handleSuggestSubtasks}
             className={`bg-emerald-900 text-white-900 px-2 shadow-none`}
           >
