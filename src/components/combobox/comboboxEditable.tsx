@@ -187,7 +187,7 @@ export function ComboboxEditable({
             </div>
           </div>
         </PopoverTrigger>
-        <PopoverContent className="w-[200px] p-0">
+        <PopoverContent className="w-[200px] p-0 bg-foreground">
           <Command>
             {/* <CommandInput placeholder={searchMessage} className="h-9" /> */}
             <CommandEmpty>{emptyMessage}</CommandEmpty>
@@ -223,7 +223,7 @@ export function ComboboxEditable({
               ))}
             </CommandGroup>
             <CommandGroup>
-              <div  className="grid grid-cols-2 place-content-stretch gap-1">
+              <div  className={`grid ${suggestOption ? "grid-cols-2" : "grid-cols-1"} place-content-stretch gap-1`}>
                 <div className="">
                   <Button
                     onClick={() => {

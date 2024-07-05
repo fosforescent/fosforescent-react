@@ -24,6 +24,7 @@ import { BrainCircuit, PlusIcon, Trash2 } from "lucide-react"
 import { Button } from "../ui/button"
 
 import { InputDiv } from './inputDiv'
+import { add } from "date-fns"
 
 export function ComboboxEditableTask({
   values,
@@ -131,7 +132,13 @@ export function ComboboxEditableTask({
         />
         </PopoverAnchor>
         
-        <PopoverTrigger asChild>
+        {values[0]!.label !== "" && <PopoverTrigger asChild onClick={(e) => {
+          if(!suggestOption){
+            e.stopPropagation()
+            e.preventDefault()
+            addOption()
+          }
+        }}>
 
           <div style={{
               position: 'relative',
@@ -151,8 +158,8 @@ export function ComboboxEditableTask({
               }} />
             </div>
           </div>
-        </PopoverTrigger>
-        <PopoverContent className="w-[200px] p-0 inset-x-1/2">
+        </PopoverTrigger>}
+        <PopoverContent className="w-[200px] p-0 inset-x-1/2 bg-foreground">
           <Command>
             {/* <CommandInput placeholder={searchMessage} className="h-9" /> */}
             {/* <CommandEmpty>{emptyMessage}</CommandEmpty> */}
@@ -188,7 +195,7 @@ export function ComboboxEditableTask({
               ))}
             </CommandGroup> */}
             <CommandGroup>
-              <div  className="grid grid-cols-2 place-content-stretch gap-1">
+              <div  className={`grid ${suggestOption ? "grid-cols-2" : "grid-cols-1"} place-content-stretch gap-1`}>
                 <div className="">
                   <Button
                     onClick={() => {

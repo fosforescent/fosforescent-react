@@ -16,9 +16,9 @@ export const suggestSteps = async (
   const description = node.getData().description?.content || ""
 
 
-  const past = node.getAncestors().reverse().map(([node, number], index) => {
+  const past = node.getAncestors().slice(1).reverse().map(([node, number], index) => {
     return node
-  })
+  }).concat([node])
 
   
 

@@ -11,9 +11,9 @@ export const suggestOption = async (
 
 
 
-  const past = node.getAncestors().reverse().map(([node, number], index) => {
+  const past = node.getAncestors().slice(1).reverse().map(([node, number], index) => {
     return node
-  })
+  }).concat([node])
 
   
 
@@ -118,35 +118,140 @@ export const suggestOption = async (
 
 
 
-  const newNodeItems: FosNodeContent[] = alternative.steps.map((task: string) => {
-    const newNodeData: FosNodeContent = {
-      data: {
-        description: {
-          content: `generated step for ${alternative.description}: ${task}`,
-        }
-      },
-      content: []
+  // Move node to task under option
+
+  const nodeType = node.getNodeType()
+  if (nodeType === "option"){
+    const newChild = node.newChild('task')
+    const newChildData = newChild.getData()
+    newChild.setData({
+      ...newChildData,
+      description: {
+        content: alternative.description
+      }
+    })
+
+    const thisNodeData = node.getData()
+    const newIndex = node.getChildren().length - 1
+    node.setData({
+      ...thisNodeData,
+      option: {
+        selectedIndex: newIndex
+      }
+    })
+
+
+  } else if (nodeType === "task") {
+    const thisParent = node.getParent()
+    if (!thisParent){
+      throw new Error('Cannot add option to task with no parent')
     }
-    return newNodeData
-  })
+    const optionNode = node.newChild("option")
+
+    console.log('optionNode', optionNode.getId(), thisParent)
+
+    const newThisNode = optionNode.newChild("task")
+    const thisNodeData = node.getData()
+    newThisNode.setData({ 
+      ...thisNodeData,
+      option: {
+        selectedIndex: thisNodeData.option?.selectedIndex || 0,
+      } 
+    })
+    newThisNode.setChildren(node.getChildren())
+
+    const newTaskNode = optionNode.newChild("task")   
+    
+    const newTaskNodeData = newTaskNode.getData()
+    newTaskNode.setData({ 
+      ...newTaskNodeData,
+      description: {
+        content: alternative.description
+      }
+    })
+    
+    const newParentChildren = thisParent.getChildren().map(child => {
+
+      console.log()
+      if(child.getId() === node.getId()){
+        return optionNode
+      } else {
+        return child
+      }
+    })
+
+    console.log('newParentChildren', newParentChildren, thisParent.getChildren())
+
+
+
+    console.log('newTaskParent', optionNode)
+
+    const newTaskIndex = optionNode.getChildren().findIndex(child => {
+      // console.log('child.getId() === newTaskNode.getId()', child.getId(), newTaskNode.getId())
+      return child.getId() === newTaskNode.getId()
+    })
+
+    if (newTaskIndex < 0){
+      console.log("optionNode in parent", optionNode)
+      console.log('newTaskIndex', newTaskIndex, optionNode.getChildren(), newTaskNode.getId())
+      throw new Error('Task node not found in parent')
+    }
+
+
+    const optionNodeData = optionNode.getData()
+    console.log('newTaskIndex', newTaskIndex, optionNodeData.option?.selectedIndex, optionNodeData.option?.selectedIndex === undefined)
+
+    optionNode.setData({
+      ...optionNodeData,
+      option: {
+        selectedIndex: newTaskIndex
+      }
+    })
+
+    
+
+    thisParent.setChildren(newParentChildren)
+
+  
+
+
+  // // create new task under option
+
+  // const newNodeItems: FosNodeContent[] = alternative.steps.map((task: string) => {
+  //   const newNodeData: FosNodeContent = {
+  //     data: {
+  //       description: {
+  //         content: `generated step for ${alternative.description}: ${task}`,
+  //       }
+  //     },
+  //     content: []
+  //   }
+  //   return newNodeData
+  // })
 
  
-  console.log('suggestion1')
-  const nodeData = node.getData()
+  // console.log('suggestion1')
+  // const nodeData = node.getData()
 
 
-  const child = node.newChild()
+  // const child = node.newChild()
 
-  const newChildData = child.getData()
+  // const newChildData = child.getData()
 
-  const newData = {
-    ...newChildData,
-    description: {
-      content: alternative.description
-    }
+  // const newData = {
+  //   ...newChildData,
+  //   description: {
+  //     content: alternative.description
+  //   }
+  // }
+
+  // child.setData(newData)
+
+
+  } else {
+    throw new Error(`Method not implemented for type ${nodeType}.`);
   }
 
-  child.setData(newData)
 
 
   return

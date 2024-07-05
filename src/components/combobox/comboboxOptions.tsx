@@ -215,7 +215,7 @@ export function ComboboxOptions({
               ))}
             </CommandGroup>
             <CommandGroup>
-              <div  className="grid grid-cols-2 place-content-stretch gap-1">
+              <div  className={`grid grid-cols-2 place-content-stretch gap-1`}>
                 <div className="">
                   <Button
                     onClick={() => {

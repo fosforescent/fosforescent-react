@@ -5,12 +5,16 @@ import Main, { FosContextData } from '.'
 
 import './global.css'
 import './index.css'
+import { promptGPT } from './promptGPT'
+import { useToast } from './components/ui/use-toast'
+import { Toaster } from './components/ui/toaster'
 
 const TestApp = () => {
 
+  const envToken = localStorage.getItem("token") || process?.env?.OPEN_AI_API_KEY || ""
 
   const [state, setState] = React.useState<FosContextData | undefined>()
-
+  const [token, setToken] = React.useState<string>(envToken)
 
   // const [activeModule, setActiveModule] = React.useState<FosModule | undefined>(fosModules.workflow)
 
@@ -19,6 +23,23 @@ const TestApp = () => {
   //   setActiveModule(module)
   // }
 
+  const updateToken = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value
+    localStorage.setItem('token', value)
+    setToken(value)
+  }
+
+  const { toast }  = useToast()
+
+  const sendToast = (toastOpts: { title: string, description: string, duration: number } ) => {
+    toast({
+      title: toastOpts.title,
+      description: toastOpts.description,
+      duration: toastOpts.duration,
+    })
+  }
+
+  console.log("here2")
 
   return (<div style={{
     height: "100vh",
@@ -28,6 +49,14 @@ const TestApp = () => {
     alignItems: "center",
     justifyContent: "center",
   }}>
+    <div className="border border-black"> 
+      <input 
+        type="text"
+        value={token}
+        placeholder='Enter OpenAI API token here'
+        onChange={updateToken}
+      /> 
+    </div>
     <div style={{
       width: "80%",
       height: "80%",
@@ -40,10 +69,12 @@ const TestApp = () => {
           theme: "light",
           // activeModule,
           // setActiveModule: setActiveModuleWithLog,
-          // canPromptGPT: true,
-          // promptGPT: promptGPTMock,
+          toast: sendToast,
+          canPromptGPT: !!token,
+          promptGPT: promptGPT,
         }}/>
     </div>
+    <Toaster />
   </div>)
 }
 

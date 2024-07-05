@@ -51,11 +51,11 @@ export const RootScreenHead = ({
 
   const handleAllActionsButtonClick = () => {
     if (showAllActions) {
-      if (global?.activeModule !== undefined){
-        setActiveModule(undefined)
-      } else {
+      // if (global?.activeModule !== undefined){
+      //   setActiveModule(undefined)
+      // } else {
         setShowAllActions(false)  
-      }
+      // }
     } else {
       setShowAllActions(true)
     }
@@ -78,7 +78,7 @@ export const RootScreenHead = ({
   const activeModule = isRoot ? undefined : global.activeModule
 
 
-  const availableModules = isRoot ? global?.modules?.filter((mod) => mod.name !== "workflow") : global?.modules
+  const availableModules = isRoot ? [] : global?.modules
 
   const HeadComponent = activeModule?.HeadComponent || (() => <></>)
 

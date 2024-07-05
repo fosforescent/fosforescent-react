@@ -17,11 +17,11 @@ export const suggestMagic = async (
   node: IFosNode,
   ) => {
 
+  console.log('suggestMagic', node)
 
-
-  const past = node.getAncestors().reverse().map(([node, number], index) => {
+  const past = node.getAncestors().slice(1).reverse().map(([node, number], index) => {
     return node
-  })
+  }).concat([node])
 
   
 
