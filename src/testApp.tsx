@@ -41,7 +41,7 @@ const TestApp = () => {
 
 
   const updateData = (data: FosContextData) => {
-    console.log("here1")
+    // console.log("here1")
     toast({
       title: "Data Updated",
       description: "Data has been updated",

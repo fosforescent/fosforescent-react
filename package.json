@@ -46,7 +46,7 @@
     "@radix-ui/react-tabs": "^1.0.4",
     "@radix-ui/react-toast": "^1.2.1",
     "@storybook/addon-a11y": "^7.2.1",
-    "@syctech/react-trellis": "file:../../syc/react-trellis",
+    "@syctech/react-trellis": "^0.1.2",
     "@temporalio/activity": "^1.6.0",
     "@temporalio/client": "^1.6.0",
     "@temporalio/common": "^1.6.0",

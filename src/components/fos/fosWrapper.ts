@@ -168,7 +168,7 @@ class FosWrapper implements TrellisNodeInterface<FosWrapper> {
   }
 
   setData(data: FosDataContent): void {
-    console.log('fosWrapper.setData')
+    // console.log('fosWrapper.setData')
     this.node.setData(data)
   }
 

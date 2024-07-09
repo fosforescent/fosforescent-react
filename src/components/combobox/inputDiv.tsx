@@ -82,7 +82,7 @@ export const InputDiv: React.FC<InputDivProps> = ({
     const cursorPosition = getCursorPosition(divRef.current);
     const newValue = divRef.current.innerText;
     onChange(newValue, cursorPosition);
-    console.log('updateInput')
+    // console.log('updateInput')
   };
 
   const handleBlur = (e: React.FocusEvent<HTMLDivElement>) => {
