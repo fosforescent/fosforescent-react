@@ -44,7 +44,7 @@ export const RootScreenHead = ({
   // console.log('children', node.getChildren().map((child) => child.getNodeType()))
 
   const setActiveModule = (module: FosDataModule | undefined) => {
-    console.log('setActiveModule', module, global)
+    // console.log('setActiveModule', module, global)
     global?.setActiveModule && global.setActiveModule(module)
   }
 
@@ -63,7 +63,7 @@ export const RootScreenHead = ({
 
 
   const handleModuleClick = (module: FosDataModule) => {
-    console.log('handleModuleClick', module)
+    // console.log('handleModuleClick', module)
     setActiveModule(module)
     setShowAllActions(false)
   }

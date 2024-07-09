@@ -172,7 +172,7 @@ export const suggestOption = async (
     
     const newParentChildren = thisParent.getChildren().map(child => {
 
-      console.log()
+      // console.log()
       if(child.getId() === node.getId()){
         return optionNode
       } else {
@@ -180,11 +180,11 @@ export const suggestOption = async (
       }
     })
 
-    console.log('newParentChildren', newParentChildren, thisParent.getChildren())
+    // console.log('newParentChildren', newParentChildren, thisParent.getChildren())
 
 
 
-    console.log('newTaskParent', optionNode)
+    // console.log('newTaskParent', optionNode)
 
     const newTaskIndex = optionNode.getChildren().findIndex(child => {
       // console.log('child.getId() === newTaskNode.getId()', child.getId(), newTaskNode.getId())

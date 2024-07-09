@@ -164,7 +164,7 @@ export const DurationInput = ({
       : 5
     setStartIndex(actualIndex)
 
-    console.log('dur index', indexToUse, actualIndex, inputs.length)
+    // console.log('dur index', indexToUse, actualIndex, inputs.length)
 
   }, [time])
 
@@ -264,13 +264,13 @@ const ResourceComponent = ({ node, options }: FosModuleProps) => {
   
   const handleMinDurationPath = async () => {
     node.fosNode().setPath(durationInfo.minPaths)
-    console.log('min path', durationInfo.minPaths)
+    // console.log('min path', durationInfo.minPaths)
 
   }
   
   const handleMaxDurationPath = async () => {
     node.fosNode().setPath(durationInfo.maxPaths)
-    console.log('max path', durationInfo.maxPaths)
+    // console.log('max path', durationInfo.maxPaths)
   }
   
 
@@ -287,7 +287,7 @@ const ResourceComponent = ({ node, options }: FosModuleProps) => {
   const pattern = /.*(\{[^{}]*\}).*/m
   const parsePattern = (result: any, node: IFosNode): DurationData => {
 
-    console.log('parsePattern', result)
+    // console.log('parsePattern', result)
 
     const resultParsed = result as {
       milliseconds?: number,

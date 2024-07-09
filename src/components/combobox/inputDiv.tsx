@@ -69,7 +69,7 @@ export const InputDiv: React.FC<InputDivProps> = ({
     if(!divRef.current){
       return 
     }
-    console.log('setting cursor position', focusChar)
+    // console.log('setting cursor position', focusChar)
     onFocus && onFocus(focusChar || 0);
     setCursorPosition(divRef.current, focusChar || 0)
   }, [focusChar]);
@@ -82,7 +82,7 @@ export const InputDiv: React.FC<InputDivProps> = ({
     const cursorPosition = getCursorPosition(divRef.current);
     const newValue = divRef.current.innerText;
     onChange(newValue, cursorPosition);
-
+    console.log('updateInput')
   };
 
   const handleBlur = (e: React.FocusEvent<HTMLDivElement>) => {
@@ -130,8 +130,9 @@ export const InputDiv: React.FC<InputDivProps> = ({
       e.stopPropagation();
       return
     }
+    console.log('keyup', e.key)
     updateInput();
-    console.log('keyup', e.key, hasFocus, focusChar, value, divRef.current ? textNodes(divRef.current) : '--', textNodes(divRef.current).length)
+    // console.log('keyup', e.key, hasFocus, focusChar, value, divRef.current ? textNodes(divRef.current) : '--', textNodes(divRef.current).length)
   }
 
   
@@ -193,7 +194,7 @@ const textNodes = (divElement: HTMLDivElement) => {
   );
   const list = [];
   for (let node = iterator.nextNode(); node; node = iterator.nextNode()) {
-    console.log(node.textContent);
+    // console.log(node.textContent);
     list.push(node);
   }
   return list

@@ -185,7 +185,7 @@ const setProbabilityInfo = (node: IFosNode, value: {
 
 const getProbabilityInfo = (node: IFosNode): ProbabilityInfo  => {
   const nodeData = node.getData()
-  console.log('nodeData', nodeData)
+  // console.log('nodeData', nodeData)
 
   const probabilitySuccessInfo = getProbabilitySuccessInfo(node)
   const probabilityFailureInfo = getProbabilityFailureInfo(node)

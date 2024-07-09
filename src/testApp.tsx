@@ -39,7 +39,17 @@ const TestApp = () => {
     })
   }
 
-  console.log("here2")
+
+  const updateData = (data: FosContextData) => {
+    console.log("here1")
+    toast({
+      title: "Data Updated",
+      description: "Data has been updated",
+      duration: 500
+    })
+    setState(data)
+  }
+
 
   return (<div style={{
     height: "100vh",
@@ -64,7 +74,7 @@ const TestApp = () => {
       }}>
       <Main 
         data={state} 
-        setData={setState} 
+        setData={updateData} 
         options={{
           theme: "light",
           // activeModule,

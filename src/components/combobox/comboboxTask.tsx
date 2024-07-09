@@ -101,7 +101,7 @@ export function ComboboxOptions({
   })
 
   const handleChange = (value: number) => {
-    console.log('handleChange', value)
+    // console.log('handleChange', value)
     const nodeData = node.getData()
     const newNodeData = {
       ...nodeData,
@@ -139,12 +139,12 @@ export function ComboboxOptions({
   }
 
   const keyPresses = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    console.log('keypress', e.key, selectedIndex)
+    // console.log('keypress', e.key, selectedIndex)
 
 
     if (e.key === "ArrowUp") {
       if (e.altKey){
-        console.log('test', selectedIndex, items.length, (selectedIndex - 1 + items.length) % items.length);
+        // console.log('test', selectedIndex, items.length, (selectedIndex - 1 + items.length) % items.length);
         handleChange( selectedIndex ? (selectedIndex - 1 + items.length) % items.length  : 0 )
       }
     }
