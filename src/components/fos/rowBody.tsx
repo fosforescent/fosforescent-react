@@ -171,24 +171,29 @@ export const RowBody = ({
 
   
   const handleZoom = () => {
-    console.log('zooming', node)
+    // console.log('zooming', node)
     const nodeType = node.getNodeType()
     if (nodeType === 'task'){
       meta.trellisNode.setZoom()
-      console.log('zooming', node)
+      // console.log('zooming', node)
       meta.trellisNode.refresh()
     } else if (nodeType === 'option'){
       const nodeData = node.getData()
       const selectedIndex = nodeData.option?.selectedIndex || 0
-      const selectedChild = node.getChildren()[selectedIndex]
+      const nodeOptions = node.getOptions()
+      const selectedChild = nodeOptions[selectedIndex]
+
+      // console.log('selectedChild', selectedChild, nodeOptions, selectedIndex)
       if (!selectedChild){
-        console.log('option info', node, node.getChildren(), node.getData())
+        // console.log('option info', node, node.getChildren(), node.getData())
         throw new Error('selectedChild not found')
       }
-      const selectedChildRoute = selectedChild.getRoute().map(node => node.getId())
+      const selectedChildRoute = selectedChild.getTrellisRoute()
+
+      // console.log('selectedChildRoute', selectedChildRoute, state.focusRoute, selectedChildRoute)
       updateState({
         ...state,
-        focusRoute: selectedChildRoute
+        zoomRoute: selectedChildRoute
       })
     } else {
       throw new Error('zoom not implemented for this node type')

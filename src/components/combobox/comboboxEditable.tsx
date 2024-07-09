@@ -133,7 +133,7 @@ export function ComboboxEditable({
   } : {}
 
 
-  console.log('open', open, value, values, defaultValue, selectedIndex, props)
+  // console.log('open', open, value, values, defaultValue, selectedIndex, props)
 
   return (
     <Popover open={open} onOpenChange={setOpen}>

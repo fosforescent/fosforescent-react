@@ -1,7 +1,7 @@
 import React, { useMemo } from "react"
 import { ComboboxOptions } from "@/components/combobox/comboboxOptions"
 import { Button } from "@/components/ui/button"
-import { Option } from "lucide-react"
+import { Option, Wand } from "lucide-react"
 
 import { SelectionPath, IFosNode } from "@fosforescent/fosforescent-js"
 import { suggestOption } from "@/lib/suggestOption"
@@ -12,15 +12,18 @@ import { TrellisMeta } from "@syctech/react-trellis"
 import { ComboboxEditable } from "@/components/combobox/comboboxEditable"
 import { FosWrapper } from "../fosWrapper"
 import _ from 'lodash'
+import { suggestMagic } from "@/lib/suggestMagic"
 
 const ResourceComponent = ({ node, options, meta, state, updateState }: FosModuleProps) => {
 
 
-  
-  const handleSuggestOption = async () => {
+  const canPrompt = options?.canPromptGPT && options?.promptGPT
+
+  const handleSuggestMagic = async () => {
+    console.log('handleSuggestMagic', options)
     if (options?.canPromptGPT && options?.promptGPT){
       try {
-        await suggestOption(options.promptGPT, node.fosNode())
+        await suggestMagic(options.promptGPT, node.fosNode())
       } catch (err) {
         options?.toast && options.toast({
           title: 'Error',
@@ -37,35 +40,24 @@ const ResourceComponent = ({ node, options, meta, state, updateState }: FosModul
     }
   }
 
-  const thisType = node.getNodeType()
-
-  const value = node.getData().description?.content || ""
-
-  const handleTextChange = (value: string, focusChar: number | null) => {
-    node.setData({
-      description: {
-        content: value,
-      }
-    })
-    meta.trellisNode.setFocus(focusChar)
-
-  }
-  const handleGetFocus = () => {
-    meta.trellisNode.setFocus(meta.focus.focusChar)
-  }
-
   const thisRoute = node.getRoute().map(node => node.getId())
 
   const thisShouldFocus = _.isEqual(state.focusRoute, thisRoute) 
-  
+
   return (<div>
-    {<InputDiv
-      value={value}
-      onChange={handleTextChange}
-      placeholder="Task description"
-      getFocus={handleGetFocus}
-      shouldFocus={thisShouldFocus}
+    {<OptionRowComponent
+      node={node}
+      options={options}
+      meta={meta}
+      state={state}
+      updateState={updateState}
     />}
+    {canPrompt && <Button
+        onClick={handleSuggestMagic}
+        className={`bg-emerald-900 text-white-900 px-2 shadow-none`}
+      >
+      <Wand height={'1rem'} width={'1rem'}/>
+    </Button>}
   </div>)
 }
 
@@ -85,7 +77,7 @@ const OptionRowComponent = ({ node, options: fosOptions, meta, state, updateStat
   
   const getOptions = (node: FosWrapper) => {
     if (node.getNodeType() === 'option'){
-      console.log('node', node)
+      // console.log('node', node)
       return node.getOptions().map((child, index) => {
         return ({value: index.toString(), label: getDescription(child)})
       })
@@ -100,7 +92,7 @@ const OptionRowComponent = ({ node, options: fosOptions, meta, state, updateStat
   const options = useMemo(() => {
 
     const theseOptions = getOptions(node)
-    console.log('theseOptions', theseOptions)
+    // console.log('theseOptions', theseOptions)
     return theseOptions
   }, [state.focusChar, ])
 
@@ -143,7 +135,7 @@ const OptionRowComponent = ({ node, options: fosOptions, meta, state, updateStat
     }
     selectedNode.setData({description: {content: value}})
     // node.setData({description: {content: value}})
-    console.log('handleTextEdit', value, focusChar, node)
+    // console.log('handleTextEdit', value, focusChar, node)
   }
 
   const handleChange = (value: string) => {
@@ -158,7 +150,7 @@ const OptionRowComponent = ({ node, options: fosOptions, meta, state, updateStat
   const handleKeyUp = (e: React.KeyboardEvent<HTMLDivElement>) => {
     meta.trellisNode.keyUpEvents(e)
 
-    console.log('tda', focusChar, value.length)
+    // console.log('keybup', focusChar, value.length)
     if (e.key === 'Enter' && focusChar === value.length){
       meta.trellisNode.moveFocusDown()
     }

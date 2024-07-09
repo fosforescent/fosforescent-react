@@ -141,7 +141,7 @@ class FosWrapper implements TrellisNodeInterface<FosWrapper> {
 
 
   newChild(nodeType: string | null = null): FosWrapper {
-    console.log('newChild', nodeType, this.node.getNodeType())
+    // console.log('newChild', nodeType, this.node.getNodeType())
     const newChildNode = this.node.newChild(nodeType)
     return new FosWrapper(newChildNode)
   }
@@ -168,6 +168,7 @@ class FosWrapper implements TrellisNodeInterface<FosWrapper> {
   }
 
   setData(data: FosDataContent): void {
+    // console.log('fosWrapper.setData')
     this.node.setData(data)
   }
 
@@ -204,6 +205,36 @@ class FosWrapper implements TrellisNodeInterface<FosWrapper> {
       return parent.getRoute().concat([this])
     }
   }
+
+  getTrellisRoute(): string[] {
+    const thisRoute = this.getRoute()
+    const filteredRoute = thisRoute.filter(node => node.getNodeType() === "task" || node.getNodeType() === "root")
+    const ids = filteredRoute.map(node => node.getId())
+    // console.log('getTrellisRoute', thisRoute.map(n => n.getId()), ids, filteredRoute.map(node => node.getNodeType()))
+    return ids
+  }
+
+  getSelectedOption(): FosWrapper {
+    const thisNodeType = this.getNodeType()
+
+    if (thisNodeType === "option"){
+      const thisData = this.getData()
+      const selectedIndex = thisData.option?.selectedIndex || 0
+      const options = this.getOptions()
+      const selectedOption = options[selectedIndex]
+      if (!selectedOption){
+        throw new Error('selectedOption not found')
+      }
+      return selectedOption
+    } else if (thisNodeType === "task"){
+      return this
+    } else {
+      throw new Error('getSelectedOption not implemented for this node type')
+    }
+
+  }
+
+
 }
 
 

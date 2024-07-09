@@ -59,6 +59,7 @@ const ResourceComponent = ({ node, options, meta, state, updateState }: FosModul
   const canPrompt = options?.canPromptGPT && options?.promptGPT
 
   const handleSuggestMagic = async () => {
+    console.log('handleSuggestMagic', options)
     if (options?.canPromptGPT && options?.promptGPT){
       try {
         await suggestMagic(options.promptGPT, node.fosNode())
@@ -85,14 +86,14 @@ const ResourceComponent = ({ node, options, meta, state, updateState }: FosModul
 
 
   return (<div className={`grid grid-cols-[1fr,2rem] items-center`}>
-    {<InputDiv
-      value={value}
-      onChange={handleTextChange}
-      placeholder="Task description"
-      getFocus={handleGetFocus}
-      shouldFocus={thisShouldFocus}
+    {<WorkflowRowComponent
+      node={node}
+      options={options}
+      meta={meta}
+      state={state}
+      updateState={updateState}
     />}
-    {<Button
+    {canPrompt && <Button
             onClick={handleSuggestMagic}
             className={`bg-emerald-900 text-white-900 px-2 shadow-none`}
           >
@@ -149,6 +150,7 @@ const WorkflowRowComponent = ({ node, options: fosOptions, meta, state, updateSt
   
   
   const handleTextEdit = (value: string, focusChar: number | null) => {
+    console.log('handleTextEdit', value, focusChar)
     meta.trellisNode.setFocus(focusChar)
     node.setData({description: {content: value}})
   }
@@ -165,7 +167,7 @@ const WorkflowRowComponent = ({ node, options: fosOptions, meta, state, updateSt
   const handleKeyUp = (e: React.KeyboardEvent<HTMLDivElement>) => {
     meta.trellisNode.keyUpEvents(e)
 
-    console.log('tda', focusChar, value.length)
+    // console.log('keyup', focusChar, value.length)
     if (e.key === 'Enter' && focusChar === value.length){
       meta.trellisNode.moveFocusDown()
     }
@@ -190,22 +192,24 @@ const WorkflowRowComponent = ({ node, options: fosOptions, meta, state, updateSt
     }
     const optionNode = node.newChild("option")
 
-    console.log('optionNode', optionNode.getId(), thisParent)
+    // console.log('optionNode', optionNode.getId(), thisParent)
 
-    const newThisNode = optionNode.newChild("task")
-    const thisNodeData = node.getData()
-    newThisNode.setData({ 
-      ...thisNodeData,
-      option: {
-        selectedIndex: thisNodeData.option?.selectedIndex || 0,
-      } 
-    })
-    newThisNode.setChildren(node.getChildren())
 
-    const newTaskNode = optionNode.newChild("task")    
+    // const newThisNode = optionNode.newChild("task")
+    // const thisNodeData = node.getData()
+    // newThisNode.setData({ 
+    //   ...thisNodeData,
+    //   option: {
+    //     selectedIndex: thisNodeData.option?.selectedIndex || 0,
+    //   } 
+    // })
+    // newThisNode.setChildren(node.getChildren())
+
+    const newTaskNode = optionNode.newChild("task")
+    optionNode.setChildren([newTaskNode, node])
     const newParentChildren = thisParent.getChildren().map(child => {
 
-      console.log()
+      // console.log()
       if(child.getId() === node.getId()){
         return optionNode
       } else {
@@ -213,44 +217,31 @@ const WorkflowRowComponent = ({ node, options: fosOptions, meta, state, updateSt
       }
     })
 
-    console.log('newParentChildren', newParentChildren, thisParent.getChildren())
+    // console.log('newParentChildren', newParentChildren, thisParent.getChildren())
 
-
-
-    console.log('newTaskParent', optionNode)
-
-    const newTaskIndex = optionNode.fosNode().getChildren().findIndex(child => {
-      // console.log('child.getId() === newTaskNode.getId()', child.getId(), newTaskNode.getId())
-      return child.getId() === newTaskNode.getId()
-    })
-
-    if (newTaskIndex < 0){
-      console.log("optionNode in parent", optionNode)
-      console.log('newTaskIndex', newTaskIndex, optionNode.getChildren(), newTaskNode.getId())
-      throw new Error('Task node not found in parent')
-    }
 
 
     const optionNodeData = optionNode.getData()
-    console.log('newTaskIndex', newTaskIndex, optionNodeData.option?.selectedIndex, optionNodeData.option?.selectedIndex === undefined)
+    // console.log('newTaskIndex', optionNode, optionNodeData.option?.selectedIndex, optionNodeData.option?.selectedIndex === undefined)
 
     optionNode.setData({
       ...optionNodeData,
       option: {
-        selectedIndex: newTaskIndex
+        selectedIndex: 1
       }
     })
 
-    updateState({
-      ...state,
-      focusRoute: newTaskNode.getRoute().map(node => node.getId())
-    })
 
-    console.log("ADD OPTION", thisParent, newParentChildren);
+    // console.log("ADD OPTION", thisParent, newParentChildren);
 
     thisParent.setChildren(newParentChildren)
 
+    // console.log('optionNode', optionNode, thisParent, optionNode.getTrellisRoute())
 
+    updateState({
+      ...state,
+      zoomRoute: optionNode.getTrellisRoute().concat(newTaskNode.getId()),
+    })
 
 
     return newTaskNode

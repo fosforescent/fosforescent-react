@@ -77,7 +77,7 @@ export const FosRowsComponent = ({
 
 
   const handleAddNewRow = () => {
-    console.log('clicked')
+    // console.log('clicked')
     const newChild = parentNode.newChild()
     newChild.setFocus(0)
   }
@@ -210,7 +210,7 @@ const OptionRowsCombined = ( {
   const handleKeyUp = (e: React.KeyboardEvent<HTMLDivElement>) => {
     meta.trellisNode.keyUpEvents(e)
 
-    console.log('tda', focusChar, value.length)
+    // console.log('keyup', focusChar, value.length)
     if (e.key === 'Enter' && focusChar === value.length){
       meta.trellisNode.moveFocusDown()
     }
@@ -354,7 +354,7 @@ const TaskRows = ( {
 
   const canPrompt = options.canPromptGPT && options.promptGPT
 
-  console.log("here", canPrompt)
+  // console.log("here", canPrompt)
 
   const rowsEmpty = rows.length === 0 || (rows.length === 1 && rows[0]?.getString() === "")
 

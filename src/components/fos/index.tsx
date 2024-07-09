@@ -63,9 +63,9 @@ export const MainView = ({
 
   const rootNode = React.useMemo(() => {
 
-    console.log('dataToUse', dataToUse)
+    // console.log('dataToUse', dataToUse)
     const setDataWithLog = (newData: FosContextData) => {
-      console.log('setData', newData)
+      // console.log('setData', newData)
       setData(newData)
     }
 
@@ -78,7 +78,7 @@ export const MainView = ({
   const [activeModule, setActiveModule] = useState<FosDataModule | undefined>(fosDataModules.description)
 
   const setActiveModuleWithLog = (module: FosDataModule | undefined) => {
-    console.log('setActiveModule', module)
+    // console.log('setActiveModule', module)
     setActiveModule(module)
   }
 
@@ -93,7 +93,7 @@ export const MainView = ({
   const theme = options?.theme ? options.theme : window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"
 
 
-  console.log('global', global, options)
+  // console.log('global', global, options)
 
   // console.log('theme', theme)
 
@@ -137,7 +137,7 @@ const getPromptActions = (promptGPT: (systemPrompt: string, userPrompt: string, 
 
 
 const getGlobal = (options: FosReactOptions): Partial<FosReactOptions> => {
-  console.log('options', options)
+  // console.log('options', options)
   const global = {
     ...( options && options?.canPromptGPT && options?.promptGPT ? {
       canPromptGPT: true,
