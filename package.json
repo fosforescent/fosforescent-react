@@ -1,6 +1,6 @@
 {
   "name": "@fosforescent/react-client",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "scope": "@fosforescent",
   "main": "./dist/fosforescent-react.umd.js",
   "module": "./dist/fosforescent-react.mjs",
